@@ -36,9 +36,7 @@ static int settings_import(persist_t *p, int n)
     }
     if (old1 || old2) p->bold = 0;
     if (!current) memset(&p->favorites, 0, sizeof p->favorites);
-    if (p->favorites.factory[15][19] > 3u)         /* SCOPE (0.9.7, ui.c ui_scope; 0.9.18: 2 BUBBLES, 3 ORBIT): unknown = OFF (0,
-                                                     * older settings too: 0 and 1 keep their meaning) */
-        p->favorites.factory[15][19] = 0;
+    /* (GARDEN) [15][19], the old SCOPE, is not read: kept as saved */
     {   /* CLICK, CLICK LEVEL, COUNT-IN (ui.c ui_rec_prefs): two bits each, 3 is no value: the default (0) */
         uint32_t b = p->favorites.factory[15][28], f;
         for (f = 0; f < 3u; f++)

@@ -350,7 +350,6 @@ static const char *menu_short(uint32_t row)          /* a card's label: a whole 
 /* the panel's line under a row: what it does, in plain words; a value's own (v) where the values differ in kind */
 static const struct { uint8_t row, v; const char *s; } MI_HELP[] = {
     {MI_LARGE, 255, "BIG LABELS AND VALUES"},
-    {MI_SCOPE, 255, "EDIT PAGES: A SCOPE BY THE BEING"},
     {MI_ANIM, 255, "OFF: VALUES SNAP, NOTHING ROLLS"},
     {MI_LEDS, 255, "HOW IDLE KEYS AND BUTTONS GLOW"},
     {MI_SCROFF, 255, "SCREEN DARK AFTER THIS LONG IDLE"},
@@ -480,7 +479,7 @@ static void draw_menu(void)
           settings_leds * 6151u + ui_prefs * 4099u + song.rec * 65537u + song.sel * 13u +
           ui_rec_prefs * 92821u + ui_scr * 131071u + (ui.hot_t ? ui.hot_col + 1u : 0u) * 0x9E3779B1u +
           (ui.menu == 1 && ui.msg_t ? str_hash(0x70A57u, ui.msg) : 0u) + ml_count() * 977u + ml.on * 3u + usb_out * 61u +
-          midi_out_mode * 89u + cpu_cfg * 197u + ui_load * 433u + ui_scope * 71u +
+          midi_out_mode * 89u + cpu_cfg * 197u + ui_load * 433u +
           (ui.menu >= 2 ? ui.menu_scroll * 48611u : 0u) + (ui.menu == 3 ? prf_seq * 2971u + 1u : 0u) +
           (ui.menu == 2 ? (song.cpu_q8 >> 3) * 7741u + load_diag.peak * 3329u + load_diag.late * 1931u +
                           load_diag.shed * 2671u : 0u);   /* (0.6.19) ABOUT's AUDIO LOAD: live (NOW in ~3 % steps) */

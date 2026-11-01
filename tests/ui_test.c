@@ -2469,13 +2469,13 @@ static int test_menu_tabs(void)
     ui_power_on();
     hold(B_HOME);
     turn(EN_SELECT, -40);
-    ok = ui.menu == 1 && ui.menu_sel == MI_SCOPE && menu_page() == 0u && menu_tab() == MTAB_SCREEN;   /* (GARDEN: SCOPE first) */
+    ok = ui.menu == 1 && ui.menu_sel == MI_LARGE && menu_page() == 0u && menu_tab() == MTAB_SCREEN;   /* (GARDEN: LARGE first) */
     turn(EN_SELECT, 1); ok &= menu_page() == 1u && ui.menu_sel == MI_SCROFF && menu_tab() == MTAB_SCREEN;   /* (SELECT: a page a
                                                          * detent, its first; GARDEN: SCREEN's pages two, SCREEN and LIGHTS) */
     turn(EN_SELECT, 1); ok &= menu_page() == 2u && ui.menu_sel == MI_LOWCUT && menu_tab() == MTAB_AUDIO;
     turn(EN_SELECT, -1); ok &= menu_page() == 1u;
-    turn(EN_SELECT, -40); ok &= menu_page() == 0u && ui.menu_sel == MI_SCOPE;   /* (no wrap) */
-    turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_SCOPE;   /* (PRESETS: nothing, rule 3) */
+    turn(EN_SELECT, -40); ok &= menu_page() == 0u && ui.menu_sel == MI_LARGE;   /* (no wrap) */
+    turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_LARGE;   /* (PRESETS: nothing, rule 3) */
     turn(EN_SELECT, 40); ok &= menu_page() == MP_COUNT - 1u && ui.menu_sel == MI_RESTORE;
     turn(EN_SELECT, -40);
     bad += check("0.9.18 MENU: SELECT walks the pages (SCREEN .. SYSTEM, no wrap), each opened on its first setting; PRESETS does nothing", ok);
@@ -2635,7 +2635,7 @@ static int test_menu_tabs(void)
     turn(EN_SELECT, 1); frame();
     ok &= lz_crumb_is("MENU \xB7 SYSTEM") && lz_count_is("8/8");
     menu_close();
-    bad += check("0.9.18 MENU: five tabs (the page's lit), MENU . TAB . page (MENU . page when named as its tab) and n/8; ALGORITHM the tab, KNOB n the value", ok && MI_COUNT == 27u);   /* (COLOR, SKIN, STYLE, ECO STYLE gone; MOTION added) */
+    bad += check("0.9.18 MENU: five tabs (the page's lit), MENU . TAB . page (MENU . page when named as its tab) and n/8; ALGORITHM the tab, KNOB n the value", ok && MI_COUNT == 26u);   /* (COLOR, SKIN, STYLE, ECO STYLE, SCOPE gone; MOTION added) */
     return bad;
 }
 
@@ -9992,9 +9992,7 @@ static int test_large(void)
     return bad;
 }
 
-/* (0.9.7) MENU > DISPLAY > SCOPE (ui.c ui_scope, ui_lzedit.c graph_sound_lz): OFF by default (new settings and older ones),
- * a synth's EDIT pages the creature on the whole panel (no SCOPE card, no chips); ON as before (the creature on the left,
- * the SCOPE card, the chips); saved with the settings; every engine with a creature, every skin */
+/* (GARDEN) the SCOPE row is retired: the EDIT pages always show the creature left of the SCOPE card and the chips */
 static uint32_t sc_count(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint16_t c, int eq)
 {
     int32_t x, y;
@@ -10117,69 +10115,33 @@ static int test_home_a(void)
 }
 static int test_scope(void)
 {
-    int bad = 0, ok;
-    uint32_t e, sk, nseen = 0;
+    int bad = 0, ok = 1;
+    uint32_t e, nseen = 0, i;
     ui_power_on(); frame();
-    ok = ui_scope == 0u && str_eq(MI_NAME[MI_SCOPE], "SCOPE") && mi_tab(MI_SCOPE) == MTAB_SCREEN &&
-         menu_n(MI_SCOPE) == 4u && str_eq(menu_vname(MI_SCOPE, 0), "OFF") && str_eq(menu_vname(MI_SCOPE, 1), "ON") &&
-         str_eq(menu_vname(MI_SCOPE, 2), "BUBBLES") && str_eq(menu_vname(MI_SCOPE, 3), "ORBIT") && menu_get(MI_SCOPE) == 0u;
-    hold(B_HOME); ui.menu_sel = MI_SCOPE;                         /* (GARDEN: SCREEN, KNOB 1) */
-    turn(EN_K1, 1); ok &= ui_scope == 1u && menu_get(MI_SCOPE) == 1u;
-    turn(EN_K1, 1); ok &= ui_scope == 2u;                         /* BUBBLES */
-    turn(EN_K1, 1); ok &= ui_scope == 3u;                         /* ORBIT (the last value) */
-    turn(EN_K1, 1); ok &= ui_scope == 3u;                         /* (stops at the end) */
-    press(B_OCTDN); ok &= ui_scope == 2u;
-    press(B_OCTUP); ok &= ui_scope == 3u;
-    press(B_OCTDN); press(B_OCTDN); press(B_OCTDN); ok &= ui_scope == 0u;
-    press(B_HOME); ok &= !ui.menu;
-    bad += check("SCOPE: OFF by default, SCREEN's KNOB 1; KNOB 1 / OCT+- OFF ON, stopping at the ends", ok);
-    {   /* saved with the settings (byte 19 of engine 15); older settings (0) and unknown values: OFF; new settings: OFF */
-        persist_t p, q;
-        ui_scope = 1u;
-        settings_export(&p);
-        ui_scope = 0u;
-        ok = settings_import(&p, (int)sizeof p) == 1 && ui_scope == 1u && p.favorites.factory[15][19] == 1u;
-        p.favorites.factory[15][19] = 0;
-        ok &= settings_import(&p, (int)sizeof p) == 1 && ui_scope == 0u;
-        p.favorites.factory[15][19] = 9;
-        ok &= settings_import(&p, (int)sizeof p) == 1 && ui_scope == 0u && !p.favorites.factory[15][19];
-        q = p;
-        ok &= settings_import(&q, (int)sizeof q) == 1 && !memcmp(&p, &q, sizeof p);
-        settings_export(&p);
-        memset(&p.favorites, 0, sizeof p.favorites);
-        p.magic = 0x50455233u;                                    /* (PER3: settings from before) */
-        ui_scope = 1u;
-        ok &= settings_import(&p, (int)(sizeof p - sizeof p.favorites)) == 2 && ui_scope == 0u;
-        ui_scope = 1u;
-        settings_fresh();
-        ok &= ui_scope == 1u;                                     /* (settings_fresh leaves it: a new FM-1's byte is 0, OFF) */
-        bad += check("SCOPE saved with the settings and read back; older settings, unknown values: OFF (idempotent)", ok);
+    /* (GARDEN) SCOPE retired: no MENU row, and every EDIT page with a creature shows the one layout (the creature left,
+     * the SCOPE card, the chips) */
+    for (i = 0; i < MI_COUNT; i++) ok &= !str_eq(MI_NAME[i], "SCOPE");
+    bad += check("SCOPE: no MENU row (retired); the MENU's SCREEN page is LARGE, ANIMATION, MOTION", ok && MPAGE[0].row[0] == MI_LARGE &&
+                 MPAGE[0].row[1] == MI_ANIM && MPAGE[0].row[2] == MI_MOTION);
+    for (e = 0; e < NENGINES; e++) {
+        uint32_t on_tile, on_mid, chips, gy;
+        if (!eng_ok(e) || e == ENGI_DRUM || e == ENGI_FM6 || e == ENGI_SERUM || eng_gone(e) || str_eq(ENGINES[e]->name, "DIGITAL"))
+            continue;                                         /* (DIGITAL, FELUCCA_FM4=1: its OP pages, no creature; SERUM (0.9.10): no creature yet) */
+        ui_power_on();  set_engine_of(TSEL, e); TSEL->engine = TSEL->eng_req;
+        go_title("EDIT 1"); ui.force = 1; frame(); frame();
+        if (trk_engp(TSEL) == &ENG_FORMANT && TSEL->p[P_VLANG])
+            continue;
+        gy = graph_y();
+        ui.force = 1; frame();
+        on_tile = sc_rows((int32_t)gy + 2, (int32_t)gy + 60, T_RAISE);   /* (the SCOPE card) */
+        chips = sc_rows((int32_t)gy + 63, (int32_t)gy + 115, T_RAISE);   /* (.. the chips) */
+        on_mid = sc_count(117, (int32_t)gy + 20, 121, (int32_t)gy + 120, T_SURF, 0);   /* (the gap left of the card: clear) */
+        ok = on_mid == 0u && (lz_low() || (on_tile > 40u && chips >= 20u));
+        if (!ok) printf("  %s: card %u chips %u mid %u\n", ENGINES[e]->name, on_tile, chips, on_mid);
+        nseen += ok;
+        bad += ok ? 0 : 1;
     }
-    /* (GARDEN) ECO STYLE (OG / GOOBERS) retired with the GOOBERS: its two checks with it */
-    for (sk = 0; sk < 1u; sk++)                               /* the EDIT pages of every engine with a creature */
-        for (e = 0; e < NENGINES; e++) {
-            uint32_t on_tile, on_mid, off_tile, off_mid, gy, chips;
-            if (!eng_ok(e) || e == ENGI_DRUM || e == ENGI_FM6 || e == ENGI_SERUM || eng_gone(e) || str_eq(ENGINES[e]->name, "DIGITAL"))
-                continue;                                         /* (DIGITAL, FELUCCA_FM4=1: its OP pages, no creature; SERUM (0.9.10): no creature yet) */
-            ui_power_on();  set_engine_of(TSEL, e); TSEL->engine = TSEL->eng_req;
-            go_title("EDIT 1"); ui.force = 1; frame(); frame();
-            if (trk_engp(TSEL) == &ENG_FORMANT && TSEL->p[P_VLANG])
-                continue;
-            gy = graph_y();
-            ui_scope = 1u; ui.force = 1; frame();
-            on_tile = sc_rows((int32_t)gy + 2, (int32_t)gy + 60, T_RAISE);   /* (COLORS: the SCOPE card; AIR draws no tiles, as before GARDEN) */
-            chips = sc_rows((int32_t)gy + 63, (int32_t)gy + 115, T_RAISE);   /* (.. the chips) */
-            on_mid = sc_count(117, (int32_t)gy + 20, 121, (int32_t)gy + 120, T_SURF, 0);   /* (the gap left of the card: clear) */
-            ui_scope = 0u; ui.force = 1; frame();
-            off_tile = sc_rows((int32_t)gy + 2, (int32_t)gy + 115, T_RAISE);   /* (no card, no chips) */
-            off_mid = sc_count(117, (int32_t)gy + 20, 121, (int32_t)gy + 120, T_SURF, 0);   /* (the creature across the middle) */
-            ok = on_mid == 0u && off_mid > 0u && off_tile == 0u && (lz_low() || (on_tile > 40u && chips >= 20u));
-            if (!ok) printf("  %s skin %u: on card %u chips %u mid %u, off card %u mid %u\n", ENGINES[e]->name, sk, on_tile, chips, on_mid,
-                            off_tile, off_mid);
-            nseen += ok;
-            bad += ok ? 0 : 1;
-        }
-    bad += check("SCOPE: ON the creature left of the SCOPE card and the chips; OFF on the whole panel, no card, no chips (every engine, every skin)",
+    bad += check("SCOPE: the EDIT pages always show the creature left of the SCOPE card and the chips (every engine)",
                  nseen >= 7u);                             /* (GARDEN: one skin, AIR; was 4 x 7) */
     ui_power_on(); frame();
     return bad;
@@ -10208,11 +10170,11 @@ static int test_menu_prefs(void)
     turn(EN_SELECT, -40);
     ok &= ui.menu_sel == MPAGE[0].row[0];
     bad += check("0.9.18 MENU: SELECT reaches every page (every tab), each a screen of its own", ok);
-    /* ANIM (GARDEN: SCREEN, KNOB 3) */
-    ok = str_eq(MI_NAME[MI_ANIM], "ANIMATION") && !(ui_prefs & PREF_ANIM_OFF) && MPAGE[menu_page()].row[2] == MI_ANIM;
-    turn(EN_K3, 1); ok &= !(ui_prefs & PREF_ANIM_OFF) && ui.menu_sel == MI_ANIM;   /* right: ON (stays: the default) */
-    turn(EN_K3, -1); ok &= (ui_prefs & PREF_ANIM_OFF) != 0;       /* left: OFF */
-    turn(EN_K3, 1); ok &= !(ui_prefs & PREF_ANIM_OFF);            /* right: ON (the switch's knob right) */
+    /* ANIM (GARDEN: SCREEN, KNOB 2) */
+    ok = str_eq(MI_NAME[MI_ANIM], "ANIMATION") && !(ui_prefs & PREF_ANIM_OFF) && MPAGE[menu_page()].row[1] == MI_ANIM;
+    turn(EN_K2, 1); ok &= !(ui_prefs & PREF_ANIM_OFF) && ui.menu_sel == MI_ANIM;   /* right: ON (stays: the default) */
+    turn(EN_K2, -1); ok &= (ui_prefs & PREF_ANIM_OFF) != 0;       /* left: OFF */
+    turn(EN_K2, 1); ok &= !(ui_prefs & PREF_ANIM_OFF);            /* right: ON (the switch's knob right) */
     press(B_OCTDN); ok &= (ui_prefs & PREF_ANIM_OFF) && ui.menu;  /* OCT-: OFF */
     ok &= !(ui_prefs & ~(uint32_t)PREF_ANIM_OFF);                 /* (no other setting moved) */
     press(B_HOME);

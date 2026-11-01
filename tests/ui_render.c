@@ -948,7 +948,6 @@ static void vx_sing(uint32_t ph0, uint32_t n0, uint32_t ph, uint32_t n, int32_t 
     fm1_ms = ms;
     ui.frame = fr;
     TSEL->peak = peak;
-    ui_scope = !full;
     if (home) { ui.home = 1; ui.hlv = 1; ui.hset[1] = 0; eco.en[song.sel] = 220; }
 }
 static void vx_animal_scene(const char *pre, int32_t size)
@@ -1070,8 +1069,6 @@ static void setup(int s)
         return;
     }
     state();
-    ui_scope = 1;                                   /* (0.9.7) the scenes as before: MENU > DISPLAY > SCOPE ON (the *_full
-                                                     * ones: OFF, the default, the creature on the whole EDIT panel) */
     switch (s) {
     case S_HOME: {                                /* (0.9.9) the device's power-on parts (T1 DRUM-X, T2 VOICE, T3 ANIMAL,
                                                    * T4 LOFI, ...: ui.c power_sound_of) with state()'s steps: README's HOME */
@@ -1758,7 +1755,7 @@ static void setup(int s)
     case S_V6_ANALOG_RING: { static const int16_t K[8] = {6, 60, 90, -99, 90, 70, 40, -99}; v6_scene(ENGI_ANALOG, "SAW LEAD", "EDIT 1", K, 64, 700, 3); break; }
     case S_V6_ANALOG_QUIET: v6_scene(ENGI_ANALOG, "ACID", "EDIT 1", 0, 0, 4000, 3); break;
     case S_V6_ANALOG_HOME: v6_scene(ENGI_ANALOG, "SOFT PAD", 0, 0, 57, 300, 3); break;
-    case S_V6_ANALOG_FULL: { static const int16_t K[8] = {-99, -99, -99, 30, 70, 100, 110, -99}; v6_scene(ENGI_ANALOG, "ACID", "EDIT 1", K, 45, 300, 3); ui_scope = 0; break; }
+    case S_V6_ANALOG_FULL: { static const int16_t K[8] = {-99, -99, -99, 30, 70, 100, 110, -99}; v6_scene(ENGI_ANALOG, "ACID", "EDIT 1", K, 45, 300, 3); break; }
     case S_V6_FM6: v6_scene(ENGI_FM6, "TINE EP", "EDIT 1", 0, 60, 300, 4); break;
     case S_V6_FM6_ALG32: { static const int16_t K[8] = {32, 5, -99, -99, -99, -99, -99, -99}; v6_scene(ENGI_FM6, "BELL", "EDIT 2", K, 72, 120, 4); break; }
     case S_V6_FM6_OP: v6_scene(ENGI_FM6, "TINE EP", "OPERATOR", 0, 60, 300, 4); fop_op = 2; break;
@@ -1769,25 +1766,25 @@ static void setup(int s)
     case S_V6_FM6_ENV: v6_scene(ENGI_FM6, "BELL", "OP ENV", 0, 72, 600, 4); fop_op = 0; fop_stg = 1; break;
     case S_V6_FM6_ENV_REL: v6_scene(ENGI_FM6, "PAD", "OP ENV", 0, 0, 4000, 4); fop_op = 2; fop_stg = 3; break;
     case S_V6_FM6_HOME: v6_scene(ENGI_FM6, "MARIMBA", 0, 0, 67, 200, 4); break;
-    case S_V6_FM6_FULL: v6_scene(ENGI_FM6, "TINE EP", "EDIT 1", 0, 60, 300, 4); ui_scope = 0; break;
+    case S_V6_FM6_FULL: v6_scene(ENGI_FM6, "TINE EP", "EDIT 1", 0, 60, 300, 4); break;
     case S_V6_WHEEL: v6_scene(ENGI_WHEEL_UI, "ROCK DRIVE", "EDIT 1", 0, 60, 300, 5); break;
     case S_V6_WHEEL_FAST: { static const int16_t K[8] = {15, 0, 0, 0, 2, 100, 60, 2}; v6_scene(ENGI_WHEEL_UI, "JAZZ PERC", "EDIT 2", K, 62, 60, 5); break; }
     case S_V6_WHEEL_HOME: v6_scene(ENGI_WHEEL_UI, "GOSPEL", 0, 0, 55, 300, 5); break;
-    case S_V6_WHEEL_FULL: v6_scene(ENGI_WHEEL_UI, "ROCK DRIVE", "EDIT 1", 0, 60, 300, 5); ui_scope = 0; break;
+    case S_V6_WHEEL_FULL: v6_scene(ENGI_WHEEL_UI, "ROCK DRIVE", "EDIT 1", 0, 60, 300, 5); break;
     case S_V6_NOISE: { static const int16_t K[8] = {1, 40, 80, 90, 64, 100, 30, 0}; v6_scene(ENGI_NOISE_UI, "RAIN", "EDIT 1", K, 60, 300, 6); break; }
     case S_V6_NOISE_LFSR: { static const int16_t K[8] = {2, 64, 90, 40, 64, 32, 0, 40}; v6_scene(ENGI_NOISE_UI, "ARCADE", "EDIT 2", K, 60, 300, 6); break; }
     case S_V6_NOISE_WHITE: { static const int16_t K[8] = {0, 0, 120, 10, 64, 0, 60, 0}; v6_scene(ENGI_NOISE_UI, "WIND", "EDIT 1", K, 48, 900, 6); break; }
     case S_V6_NOISE_HOME: v6_scene(ENGI_NOISE_UI, "SEA", 0, 0, 48, 300, 6); break;
-    case S_V6_NOISE_FULL: { static const int16_t K[8] = {1, 40, 80, 90, 64, 100, 30, 0}; v6_scene(ENGI_NOISE_UI, "RAIN", "EDIT 1", K, 60, 300, 6); ui_scope = 0; break; }
+    case S_V6_NOISE_FULL: { static const int16_t K[8] = {1, 40, 80, 90, 64, 100, 30, 0}; v6_scene(ENGI_NOISE_UI, "RAIN", "EDIT 1", K, 60, 300, 6); break; }
     case S_V6_PHASE: v6_scene(ENGI_PHASE_UI, "BRASS", "EDIT 1", 0, 50, 300, 7); break;
     case S_V6_PHASE_RING: { static const int16_t K[8] = {3, 2, 90, 60, 30, 1, 80, 70}; v6_scene(ENGI_PHASE_UI, "BELL", "EDIT 2", K, 62, 50, 7); break; }
     case S_V6_PHASE_HOME: v6_scene(ENGI_PHASE_UI, "CZ PIANO", 0, 0, 57, 300, 7); break;
-    case S_V6_PHASE_FULL: v6_scene(ENGI_PHASE_UI, "BRASS", "EDIT 1", 0, 50, 300, 7); ui_scope = 0; break;
+    case S_V6_PHASE_FULL: v6_scene(ENGI_PHASE_UI, "BRASS", "EDIT 1", 0, 50, 300, 7); break;
     case S_V6_LOFI: v6_scene(ENGI_LOFI_UI, "BYTEBEAT", "EDIT 1", 0, 60, 300, 8); break;
     case S_V6_LOFI_FLOAT: v6_scene(ENGI_LOFI_UI, "FLOAT PAD", "EDIT 2", 0, 60, 120, 8); break;
     case S_V6_LOFI_PLS: v6_scene(ENGI_LOFI_UI, "PULSE LD", "EDIT 1", 0, 72, 600, 8); break;
     case S_V6_LOFI_HOME: v6_scene(ENGI_LOFI_UI, "GB ARP", 0, 0, 72, 300, 8); break;
-    case S_V6_LOFI_FULL: v6_scene(ENGI_LOFI_UI, "BYTEBEAT", "EDIT 1", 0, 60, 300, 8); ui_scope = 0; break;
+    case S_V6_LOFI_FULL: v6_scene(ENGI_LOFI_UI, "BYTEBEAT", "EDIT 1", 0, 60, 300, 8); break;
     case S_VX_TRACT_A_FULL: vx_sing(PH_M, 6, PH_A, 4, 7000, 1, 0); break;   /* (0.9.9) an open vowel, a nasal */
     case S_VX_TRACT_M_FULL: vx_sing(PH_A, 8, PH_M, 7, 5000, 1, 0); break;
     case S_VX_TRACT_A_EDIT: vx_sing(PH_M, 6, PH_A, 4, 7000, 0, 0); break;
@@ -1798,14 +1795,14 @@ static void setup(int s)
     case S_V6_LOFI_4BIT: case S_V6_LOFI_FULL_4BIT: case S_V6_LOFI_HOME_4BIT: {
         static const int16_t K[8] = {0, -99, -99, -99, -99, -99, -99, -99};
         v6_scene(ENGI_LOFI_UI, "BYTEBEAT", s == S_V6_LOFI_HOME_4BIT ? 0 : "EDIT 1", K, 60, 300, 8);
-        if (s == S_V6_LOFI_FULL_4BIT) ui_scope = 0;
+        if (s == S_V6_LOFI_FULL_4BIT)
         break;
     }
     case S_V6_LOFI_4B2: { static const int16_t K[8] = {1, -99, -99, -99, -99, -99, -99, -99}; v6_scene(ENGI_LOFI_UI, "BYTEBEAT", "EDIT 1", K, 60, 300, 8); break; }
     case S_V6_LOFI_1BIT: case S_V6_LOFI_FULL_1BIT: case S_V6_LOFI_HOME_1BIT: {
         static const int16_t K[8] = {3, -99, -99, -99, -99, -99, -99, -99};
         v6_scene(ENGI_LOFI_UI, "BYTEBEAT", s == S_V6_LOFI_HOME_1BIT ? 0 : "EDIT 1", K, 60, 300, 8);
-        if (s == S_V6_LOFI_FULL_1BIT) ui_scope = 0;
+        if (s == S_V6_LOFI_FULL_1BIT)
         break;
     }
     case S_V6_LOFI_STEP: { static const int16_t K[8] = {-99, -99, -99, 100, -99, -99, -99, -99}; v6_scene(ENGI_LOFI_UI, "STEP LEAD", "EDIT 1", K, 64, 400, 8); break; }
@@ -1820,12 +1817,12 @@ static void setup(int s)
         v6_scene(ENGI_LOFI_UI, "BYTE VAR", "EDIT 2", K, 60, 300, 8);
         break;
     }
-    case S_V6_VOICE_FULL: vx_phon(PH_E, 6000); ui_scope = 0; break;            /* (0.9.7) SCOPE OFF: VOICE's head, ANIMAL's */
-    case S_V6_ANIMAL_FULL: vx_animal_scene("CANARY", -1); ui_scope = 0; break;
+    case S_V6_VOICE_FULL: vx_phon(PH_E, 6000); break;            /* (0.9.7) SCOPE OFF: VOICE's head, ANIMAL's */
+    case S_V6_ANIMAL_FULL: vx_animal_scene("CANARY", -1); break;
     case S_V6_SERUM: v6_scene(15, "WT PAD", "EDIT 1", 0, 50, 300, 7); break;     /* (0.9.12) SERUM: the tree beside EDIT */
     case S_V6_SERUM_FULL: {                          /* (WT 110: ten branches; CUT and RES open, the FILT ACID leaves) */
         static const int16_t K[8] = {110, 60, 14, 50, 100, 60, 20, 1};
-        v6_scene(15, "WT LEAD", "EDIT 1", K, 60, 300, 7); ui_scope = 0; break;
+        v6_scene(15, "WT LEAD", "EDIT 1", K, 60, 300, 7); break;
     }
     case S_MK_REST: case S_MK_AH: case S_MK_EE: case S_MK_OO: case S_MK_CHANT: case S_MK_HOME: case S_MK_FULL: {
         /* (0.9.20) MONK: his faces (ui_engvis.c vx_monk) beside EDIT: silent at rest, then A, E, U sung just now (the
@@ -1840,7 +1837,7 @@ static void setup(int s)
         }
         mk_held[song.sel % NTRK].age = s == S_MK_CHANT ? 0xFFFFFFFFu : 0u;   /* (the chant: its note held 3 s) */
         mk_held[song.sel % NTRK].ms = fm1_ms - 3000u;
-        if (s == S_MK_FULL) ui_scope = 0;
+        if (s == S_MK_FULL)
         break;
     }
     case S_V6_MSEQ_MOTION: {                         /* (0.9.12) MOTION over the MSEQ bars (vx_mseq, drawn in draw) */

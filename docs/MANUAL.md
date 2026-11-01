@@ -731,7 +731,7 @@ well under ANALOG's eight.
 
 ### The engines' creatures (GARDEN)
 
-Each engine has its creature on its EDIT pages (with SCOPE OFF the whole panel, centred) and on HOME › BEING, drawn in
+Each engine has its creature on its EDIT pages (the creature on the left, the SCOPE card and the chips) and on HOME › BEING, drawn in
 2 px blocks in the garden's colours. They move on the music's clock (slow in silence, faster and pulsing with the
 level and the beat):
 
@@ -2001,7 +2001,6 @@ every setting, its values and its meaning: nothing changes in the saved settings
 | Tab › page | KNOB | Setting | Values |
 | --- | --- | --- | --- |
 | SCREEN › SCREEN | 1 | LARGE | OFF, ON (big labels and values) — (GARDEN) COLOR, SKIN and STYLE are retired: one look |
-| SCREEN › SCREEN 2 | 1 | SCOPE | **OFF** (default), ON — (0.9.7) an engine's EDIT pages: OFF the creature on the whole panel, centred, the page's name and the sound's name small in its corners; ON the creature on the left, the SCOPE card and the chips as before. Settings saved before 0.9.7 load as OFF |
 | | 2 | ANIMATION | ON, OFF (values snap, the garden still; the power-on signature appears whole) — was ANIM |
 | | 3 | SCREEN SLEEP | **NEVER** (default), 5 MIN, 15 MIN, 30 MIN, 60 MIN — the screen dark after that long without a touch (was SCREEN OFF) |
 | SCREEN › LEDS | 1 | LED GLOW | OFF, LOW, **HIGH** (default), INVERT — how the idle keys and buttons glow (was LEDS: OFF, DIM LO, DIM HI, INV); (0.7.3) the glow's LEDs take turns frame to frame, so it no longer hums through the speaker once the music stops |

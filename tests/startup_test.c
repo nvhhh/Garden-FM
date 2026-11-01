@@ -34,16 +34,11 @@ static int startup_case(int saved, int restore, int noprefs)
     if (!noprefs && st_save(OBJ_SETTINGS, &prefs, sizeof prefs)) return 1;
 
     web_boot();
-    if (noprefs) {                                     /* (0.9.7) no settings saved: new settings, SKIN AIR, SCOPE OFF */
+    if (noprefs) {                                     /* no settings saved: new settings, SKIN AIR */
         int okf = UX_SKIN == SKIN_AIR, i2;              /* (GARDEN: AIR's layout, always) */
         for (i2 = 0; i2 < 2000; i2++) web_render(128);   /* (past the splash) */
-        okf &= ui_scope == 0u;
-        printf("startup: empty flash, no settings: SKIN AIR, SCOPE OFF (new settings) %s\n", okf ? "ok" : "FAIL");
+        printf("startup: empty flash, no settings: SKIN AIR (new settings) %s\n", okf ? "ok" : "FAIL");
         return !okf;
-    }
-    if (ui_scope) {                                    /* (0.9.7) settings saved before AIR: SCOPE OFF (GARDEN: no SKIN, AIR's layout) */
-        printf("startup: saved settings: SCOPE OFF: FAIL\n");
-        return 1;
     }
     ok = song_cur == want.cur && !memcmp(&chain_config, &want.rows[want.cur], sizeof chain_config);
     ok &= !!(ui_prefs & PREF_RESTORE_ON) == restore;

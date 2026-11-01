@@ -3,7 +3,7 @@
 # Copyright (C) 2026 Juan Ignacio Antonucci (Juan Jiant)
 # (JIANT 0.5; 0.6.30: from the presentation video's footage) the README's images, docs/jiant-hero.png and
 # docs/jiant-screens.png. (0.9.2) From the firmware's own renders in the default skin on the JIANT palette (0.9.7: AIR,
-# tests/ui_render.c -> build/ui_new/AIR_JIANT/<screen>.png, with MENU > DISPLAY > SCOPE OFF as a new FM-1 has it: the
+# tests/ui_render.c -> build/ui_new/AIR_JIANT/<screen>.png, with the EDIT pages as a new FM-1 shows them (the SCOPE card, the only layout since GARDEN): the
 # *_full scenes; JIANT/ COLORS and HUD_JIANT/ the other skins), so the README shows the screens as the
 # firmware draws them now (the tabs, the knobs in their colours, the breadcrumb):
 #   python3 -c "import sys; sys.path.insert(0, 'tools'); import build; build.generate()"

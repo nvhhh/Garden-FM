@@ -188,10 +188,8 @@ static void rp_put(uint32_t f, uint32_t v)
     rp_apply();
 }
 /* (GARDEN) MENU > STYLE and > SKIN are retired: favorites.factory[15][29] and [15][20] are no longer read or written */
-/* (0.9.7) MENU > DISPLAY > SCOPE (ui_lzedit.c graph_sound_lz): 1 ON, an engine's EDIT pages as before (the creature on the left,
- * the SCOPE card, the chips); 0 OFF (the default: new settings and older ones, which never held it), the creature on the
- * whole panel, centred, the page's and the sound's names in its corners. A byte no engine uses (engine 15) */
-#define ui_scope (favorites.factory[15][19])
+/* (GARDEN) MENU > SCREEN > SCOPE retired: the EDIT pages always show the creature with its SCOPE card; favorites.factory[15][19]
+ * (the old SCOPE byte) is kept as saved, not read */
 /* (GARDEN) MENU > SCREEN 2 > ECO STYLE (OG / GOOBERS) retired: favorites.factory[15][14] kept as saved, not read */
 static void draw_rules(uint32_t y, uint32_t h);       /* (ui_draw.c) */
 

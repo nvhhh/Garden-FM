@@ -158,7 +158,7 @@ static int preferences(void)
         host_wire[n0 - 23] == 0 &&                        /* (no bank since 1.0.3) */
         host_wire[n0 - 22] == 0x53 && host_wire[n0 - 21] == 1 && host_wire[n0 - 20] == 3 &&
         host_wire[n0 - 19] == 0x50 && host_wire[n0 - 18] == 1 && host_wire[n0 - 17] == 3 &&   /* FM6 v2: no bank, preset patches */
-        host_wire[n0 - 16] == 0x4E && host_wire[n0 - 15] == 1 && host_wire[n0 - 14] == 23 &&  /* MENU settings: 23 items (GARDEN: COLOR STYLE SKIN ECO STYLE out, MOTION in) (0.6.72: MIDI OUT; 0.8.9 SKIN; 0.9.7 SCOPE; 0.9.12 CPU, CPU CLOCK) */
+        host_wire[n0 - 16] == 0x4E && host_wire[n0 - 15] == 1 && host_wire[n0 - 14] == 22 &&  /* MENU settings: 22 items (GARDEN: COLOR STYLE SKIN ECO STYLE SCOPE out, MOTION in) (0.6.72: MIDI OUT; 0.8.9 SKIN; 0.9.7 SCOPE; 0.9.12 CPU, CPU CLOCK) */
         host_wire[n0 - 13] == 0x52 && host_wire[n0 - 12] == 1 && host_wire[n0 - 11] == 4 &&   /* RATCH */
         host_wire[n0 - 10] == 0x4C && host_wire[n0 - 9] == 1 && host_wire[n0 - 8] == 1 &&   /* 1.1 parameter locks */
         host_wire[n0 - 7] == 0x56 && host_wire[n0 - 6] == 1 && host_wire[n0 - 5] == 32 &&   /* (0.6.11) FM6 voice bank */
@@ -853,15 +853,12 @@ static int menu_protocol(void)
         ok &= strcmp(it.name, "COLOR") != 0 && strcmp(it.name, "STYLE") != 0 && strcmp(it.name, "SKIN") != 0 && strcmp(it.name, "ECO STYLE") != 0 &&
               it.id != 0 && it.id != 1 && it.id != 21 && it.id != 25;  /* (GARDEN: retired, their ids never reused) */
         if (i == 18u) ok &= !strcmp(it.name, "MIDI OUT") && it.id == 20;   /* (0.6.72) */
-        if (i == 22u) ok &= !strcmp(it.name, "MOTION") && it.id == 26 && it.tab == 0;     /* (GARDEN; ECO STYLE, id 25, retired) */
+        if (i == 21u) ok &= !strcmp(it.name, "MOTION") && it.id == 26 && it.tab == 0;     /* (GARDEN; ECO STYLE, id 25, retired; SCOPE, id 22, too) */
     }
-    menu_desc(19, &it);                                   /* (0.9.7) SCOPE, a row of DISPLAY: OFF (the default) ON (0.9.18: BUBBLES ORBIT) */
-    ok &= !strcmp(it.name, "SCOPE") && it.id == 22 && it.tab == 0 && it.value == 0 && it.max == 3 && !strcmp(it.names[0], "OFF") &&
-          !strcmp(it.names[1], "ON") && !strcmp(it.names[2], "BUBBLES") && !strcmp(it.names[3], "ORBIT");
-    menu_desc(20, &it);                                   /* (0.9.12) CPU, CPU CLOCK, rows of SYSTEM (tab 4 since MIDI) */
+    menu_desc(19, &it);                                   /* (0.9.12) CPU, CPU CLOCK, rows of SYSTEM (tab 4 since MIDI) */
     ok &= !strcmp(it.name, "CPU CORES") && it.id == 23 && it.tab == 4 && it.max == 1 && !strcmp(it.names[0], "1 CORE") &&
           !strcmp(it.names[1], "2 CORES");
-    menu_desc(21, &it);
+    menu_desc(20, &it);
     ok &= !strcmp(it.name, "CPU CLOCK") && it.id == 24 && it.tab == 4 && it.max == 1 && !strcmp(it.names[0], "360 MHZ") &&
           !strcmp(it.names[1], "320 MHZ");
     n = menu_desc(23, &it);
