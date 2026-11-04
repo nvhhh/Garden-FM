@@ -66,6 +66,7 @@
   <p class="small"><label><span data-t="ownFile"></span><br><input id="own-file" type="file" accept=".fwsc"></label>
     <br><span data-t="ownWhat"></span></p>
   <p><button id="go" disabled data-t="install"></button></p>
+  <p><button id="garden-go">Install Garden FM</button> <span class="small">(the latest Garden build)</span></p>
   <details id="stock" style="margin-top:24px">
     <summary data-t="stockTitle"></summary>
     <p class="small" data-t="back"></p>
@@ -513,7 +514,7 @@ const tellEditors = (busy) => {
 };
 
 let writing = false, stock = null, stockFileEpoch = 0;
-const lockInstaller = (on) => { writing = on; tellEditors(on); $("ver").disabled = on; $("own-file").disabled = on; $("go").disabled = on || !image; $("stock-go").disabled = on || !stock; $("stock-file").disabled = on; $("stock-recovery").disabled = on; };
+const lockInstaller = (on) => { writing = on; tellEditors(on); $("ver").disabled = on; $("own-file").disabled = on; $("garden-go").disabled = on; $("go").disabled = on || !image; $("stock-go").disabled = on || !stock; $("stock-file").disabled = on; $("stock-recovery").disabled = on; };
 window.addEventListener("beforeunload", (e) => { if (writing) { e.preventDefault(); e.returnValue = t("leave"); } });
 
 /* (0.6.46) the version to install: the current one or one of the last few (make_site.py PREV_DIR) */
@@ -647,6 +648,14 @@ async function begin() {
   editorTabs = 0;
   return lastUp = new Updater(midi, log, { refresh: () => navigator.requestMIDIAccess({ sysex: true }) });
 }
+/* "Install Garden FM": the latest build (versions[0], the one the site ships), then the same Install as the button below:
+ * its checks and confirmations all still run */
+$("garden-go").addEventListener("click", async () => {
+  if (writing) return;
+  $("ver").selectedIndex = 0;
+  await loadVersion(0);
+  if (!$("go").disabled) $("go").click();
+});
 $("go").addEventListener("click", async () => {
   if (writing) return;
   const nk = noticeOf();
