@@ -209,11 +209,7 @@ static void nav_go(uint32_t sec, uint32_t e, int outside)
     ui.xy = 0;
     if (sec == SEC_HOME) {
         if (e >= 4u) {                                  /* GEN: the generator's screen, HOME's last group */
-            if (!gen_on()) {
-                if (chain_busy()) {
-                    ui_message("STOP TO EDIT");
-                    return;
-                }
+            if (!gen_on()) {                            /* (open while the music plays: no chain gate) */
                 confirm_open(CF_DICE_ALL, song.sel);
                 gen_open();
             }
