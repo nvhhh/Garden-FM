@@ -104,8 +104,7 @@ static void list_put(uint32_t v)
 static const int16_t USB_GAIN[5] = {4096, 2048, 1024, 512, 256};   /* Q12: 0 -6 -12 -18 -24 dB */
 #define PREF_BPM_LOCK 16u                      /* MENU > BPM LOCK ON (#58): DICE ALL keeps the tempo; (0.6.67) SELECT
                                                 * alone never sets it (GLO + SELECT does) */
-#define PREF_LARGE 32u                         /* MENU > LARGE ON (#15, Discussion #80): big knob labels and values
-                                                * (ui_draw.c large_kind); clear in every older setting = OFF */
+                                               /* (bit 32: MENU > LARGE, retired: the option is gone, the bit is never set) */
 #define PREF_SERIAL_OFF 64u                    /* MENU > USB SERIAL OFF (#67): no serial console, the device enumerates as
                                                 * audio + MIDI only (usb.c usb_cdc_switch); clear in every older setting = ON */
 #define PREF_RESTORE_ON 128u                   /* MENU > RESTORE LAST ON (1.2, Discussion #130: the autosave written and
@@ -234,16 +233,10 @@ static int32_t ratio_d(const param_desc_t *d, int32_t v) { return ratio_of(d->mi
 #define LZ_FOOT_Y 225
 #define LZ_FOOT_H 15
 #define HEAD_RULE_Y 22                /* (0.8.5) the header's rule (every page): a LINE row in the header's strip */
-/* MENU > LARGE (large_kind below): on the value pages the cards are tall (28..132) and the panel a strip
- * (136..198); elsewhere (lists, rolls, layers) the layout above, its card labels in M */
-#define LG_CARD_H 104
-#define LG_Y_GRAPH 136
-#define LG_H_GRAPH 62
-#define LZ_LG_Y_GRAPH 150                 /* (0.8.5) .. under a lens's tabs: the tall cards 42..146, the strip 150..212 */
 /* (0.8.9) SKIN BOTTOM and HUD (the mock-up's options 3 and 4): the tabs words (26..39), the panel the screen's width and no
  * box (42..189), the knobs a slim row over the breadcrumb (191..223: label, value, a hairline gauge). HUD's HOME (hud_home):
  * the beings over the whole screen, every strip drawn on them (head 0..23, tabs 24..40, the panel 41..190, the knobs
- * 191..223, the breadcrumb 224..239). MENU > LARGE ON keeps COLORS' layout (its tall cards on top) in every skin */
+ * 191..223, the breadcrumb 224..239) */
 #define LB_TAB_H 14
 #define LB_GRAPH_Y 42
 #define LB_GRAPH_H 148
@@ -486,40 +479,15 @@ static void scr_shown(void)                            /* after the frame: the r
 static const page_t *page_over;   /* a quick layer's own four knobs (ui_layer.c), while it edits or draws them */
 static const page_t *cur_page(void) { return page_over ? page_over : &PAGES[ui.page]; }
 
-/* MENU > LARGE (#15, Discussion #80: what KNOB 1..4 do, in bigger type). Per page type:
- *   LK_TALL  HOME and the value pages (EDIT ENV LFO MOD FX SLICER SCL SHIFT ARP VOICE PATTERN STEP's knobs, MIXER,
- *            GLOBAL, SYSTEM, TOOLS, MOTION): tall cards (a K1..K4 keycap, the icon, the label in M, the value in L,
- *            in M or S when L is too wide or lacks a glyph, the unit under it, the gauge), the panel a strip: HOME's
- *            scope, ENV's ADSR, LFO's wave, PATTERN's 64 steps, MIXER's four tracks (name, state, meter) small; the
- *            page's title and number in L on the others (their charts cannot be read that small);
- *   LK_LABEL the list and graph pages (PRESETS, USER, PROJECT, PATTERNS, SONG, the piano roll and the drum grid,
- *            CHANCE) and the quick layers' maps: the layout as it is, the card labels in M;
- *   LK_OFF   LARGE off; the menu (its own LARGE: ui_menu.c), the dialogs and NAME keep their own layout in every case. */
-enum { LK_OFF, LK_LABEL, LK_TALL };
 static int lens_on(void);
 static uint32_t lz_on(void);
 static uint32_t lz_fam(void);
 static int lz_mock_cards(void);
 static int name_on(void);                       /* (ui_name.c) */
-static uint32_t large_kind(void)
-{
-    uint32_t g;
-    if (!(ui_prefs & PREF_LARGE))
-        return LK_OFF;
-    if (ui.layer || lz_mock_cards() || ui.menu || name_on())   /* (0.8.5: the menu's lens too; the NAME screen, its own
-                                                         * geometry: from any page) */                    /* (0.8.5: SEQ, SAVE, FX's lenses keep the mock-up's cards, M labels;
-                                                         * HOME and the other lenses: tall cards under their tabs) */
-        return LK_LABEL;
-    if (ui.home)
-        return LK_TALL;
-    g = cur_page()->graph;
-    return g == GR_BROWSE || g == GR_SLOTS || g == GR_USER || g == GR_PATS || g == GR_SONG || g == GR_ROLL ||
-           g == GR_CHANCE || g == GR_COMP || g == GR_EVENTS || g == GR_LYRIC || g == GR_LIVE ? LK_LABEL : LK_TALL;
-}
 /* the geometry of the page shown: the cards' height, the panel's top and height. (0.8.5) A lens page (lz_on): the
  * mock-up's (LZ_*), under its level tabs; a layer's map over it: the usual layout */
 /* (0.8.9) a lens page in SKIN BOTTOM / HUD's layout (LARGE: COLORS'); HUD's HOME (ECO): the beings full screen */
-static int lz_low(void) { return UX_SKIN && lz_on() && !(ui_prefs & PREF_LARGE); }
+static int lz_low(void) { return UX_SKIN && lz_on(); }
 /* (0.9.17) .. with the knobs' row on top, under the tabs: AIR; HUD on the SEQ pages (the values over the pattern's pictures,
  * as AIR and COLORS: the owner's "parameters on top") */
 static int lz_top(void);
@@ -530,24 +498,16 @@ static uint32_t card_y(void)
 }
 static uint32_t foot_y(void) { return hud_home() ? LZ_FOOT_Y - 1u : lz_on() ? LZ_FOOT_Y : Y_FOOT; }
 static uint32_t foot_h(void) { return hud_home() ? LZ_FOOT_H + 1u : lz_on() ? LZ_FOOT_H : H_FOOT; }
-static uint32_t card_h(void) { return large_kind() == LK_TALL ? LG_CARD_H : lz_low() ? LB_CARD_H : lz_on() ? LZ_CARD_H : CARD_H; }
+static uint32_t card_h(void) { return lz_low() ? LB_CARD_H : lz_on() ? LZ_CARD_H : CARD_H; }
 static uint32_t graph_y(void)
 {
     int air = lz_top();
-    return large_kind() == LK_TALL ? (lz_on() ? LZ_LG_Y_GRAPH : LG_Y_GRAPH) : hud_home() ? (air ? LA_HOME_GRAPH_Y : LB_GRAPH_Y - 1u) :
-           lz_low() ? (air ? LA_GRAPH_Y : LB_GRAPH_Y) : lz_on() ? LZ_GRAPH_Y : Y_GRAPH;
+    return hud_home() ? (air ? LA_HOME_GRAPH_Y : LB_GRAPH_Y - 1u) : lz_low() ? (air ? LA_GRAPH_Y : LB_GRAPH_Y) :
+           lz_on() ? LZ_GRAPH_Y : Y_GRAPH;
 }
 static uint32_t graph_h(void)
 {
-    return large_kind() == LK_TALL ? LG_H_GRAPH : hud_home() ? LB_CARD_Y - LB_GRAPH_Y + 1u : lz_low() ? LB_GRAPH_H :
-           lz_on() ? LZ_GRAPH_H : H_GRAPH;
-}
-static int large_face_has(const char *s)                /* every glyph of s in the sparse L face */
-{
-    for (; *s; s++)
-        if (glyph_at(&AF_L, fold(&AF_L, (uint8_t)*s)) < 0)
-            return 0;
-    return 1;
+    return hud_home() ? LB_CARD_Y - LB_GRAPH_Y + 1u : lz_low() ? LB_GRAPH_H : lz_on() ? LZ_GRAPH_H : H_GRAPH;
 }
 static int32_t ink_w(const aafont_t *f, const char *s)
 {

@@ -2375,7 +2375,7 @@ static int test_display_preferences(void)
     ui_power_on();
     memcpy(sounds, trk, sizeof sounds);
     hold(B_HOME);
-    ui.menu_sel = MI_LARGE;
+    ui.menu_sel = MI_ANIM;
     ui.force = 1; ui_draw();
     memcpy(before, host_screen, sizeof before);
     settings.lowcut = 2;
@@ -2469,13 +2469,13 @@ static int test_menu_tabs(void)
     ui_power_on();
     hold(B_HOME);
     turn(EN_SELECT, -40);
-    ok = ui.menu == 1 && ui.menu_sel == MI_LARGE && menu_page() == 0u && menu_tab() == MTAB_SCREEN;   /* (GARDEN: LARGE first) */
+    ok = ui.menu == 1 && ui.menu_sel == MI_ANIM && menu_page() == 0u && menu_tab() == MTAB_SCREEN;   /* (GARDEN: ANIMATION first) */
     turn(EN_SELECT, 1); ok &= menu_page() == 1u && ui.menu_sel == MI_SCROFF && menu_tab() == MTAB_SCREEN;   /* (SELECT: a page a
                                                          * detent, its first; GARDEN: SCREEN's pages two, SCREEN and LIGHTS) */
     turn(EN_SELECT, 1); ok &= menu_page() == 2u && ui.menu_sel == MI_LOWCUT && menu_tab() == MTAB_AUDIO;
     turn(EN_SELECT, -1); ok &= menu_page() == 1u;
-    turn(EN_SELECT, -40); ok &= menu_page() == 0u && ui.menu_sel == MI_LARGE;   /* (no wrap) */
-    turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_LARGE;   /* (PRESETS: nothing, rule 3) */
+    turn(EN_SELECT, -40); ok &= menu_page() == 0u && ui.menu_sel == MI_ANIM;   /* (no wrap) */
+    turn(EN_PRESET, 1); ok &= ui.menu_sel == MI_ANIM;   /* (PRESETS: nothing, rule 3) */
     turn(EN_SELECT, 40); ok &= menu_page() == MP_COUNT - 1u && ui.menu_sel == MI_RESTORE;
     turn(EN_SELECT, -40);
     bad += check("0.9.18 MENU: SELECT walks the pages (SCREEN .. SYSTEM, no wrap), each opened on its first setting; PRESETS does nothing", ok);
@@ -2537,7 +2537,7 @@ static int test_menu_tabs(void)
     settings.lowcut = 0; fx_lowcut = 0;
     bad += check("MENU: OCT+ / OCT- step every value row up / down (the rest stop), the menu stays", ok);
     {   /* the ON / OFF rows: up (a knob right, OCT+) is ON, the switch's knob to the right, whichever bit it is */
-        static const uint8_t SW[] = {MI_LARGE, MI_ANIM, MI_ACCEL, MI_LATCH, MI_BPMLOCK, MI_RESTORE};
+        static const uint8_t SW[] = {MI_ANIM, MI_ACCEL, MI_LATCH, MI_BPMLOCK, MI_RESTORE};
         ok = 1;
         for (i = 0; i < NELEM(SW); i++) {
             ui.menu_sel = SW[i];
@@ -2635,7 +2635,7 @@ static int test_menu_tabs(void)
     turn(EN_SELECT, 1); frame();
     ok &= lz_crumb_is("MENU \xB7 SYSTEM") && lz_count_is("8/8");
     menu_close();
-    bad += check("0.9.18 MENU: five tabs (the page's lit), MENU . TAB . page (MENU . page when named as its tab) and n/8; ALGORITHM the tab, KNOB n the value", ok && MI_COUNT == 26u);   /* (COLOR, SKIN, STYLE, ECO STYLE, SCOPE gone; MOTION added) */
+    bad += check("0.9.18 MENU: five tabs (the page's lit), MENU . TAB . page (MENU . page when named as its tab) and n/8; ALGORITHM the tab, KNOB n the value", ok && MI_COUNT == 25u);   /* (COLOR, SKIN, STYLE, ECO STYLE, SCOPE gone; MOTION added) */
     return bad;
 }
 
@@ -5419,18 +5419,6 @@ static int test_bughunt_ui2(void)
 }
 
 #ifndef UI_TEST_NO_MAIN
-/* L is a sparse face (tools/gen_aa_font.py L_CHARS): every string drawn in it has all its glyphs */
-static int test_large_face(void)
-{
-    static const char *const FIXED[] = {"JIANT", "0123456789"};   /* ui_menu.c (ABOUT); ui_draw.c draw_uboot */
-    uint32_t i, missing = 0;
-    const char *s;
-    for (i = 0; i < NB + NE + 2u; i++)                              /* ui_input.c setup_show: the control names */
-        for (s = i < NB ? B_NAME[i] : i < NB + NE ? E_NAME[i - NB] : FIXED[i - NB - NE]; *s; s++)
-            missing += glyph_at(&AF_L, (uint8_t)*s) < 0;
-    return check("the L face holds every glyph of the strings drawn in it", !missing);
-}
-
 #if FELUCCA_FM4
 /* The DIGITAL algorithm charts (ui_graph.c FM_CELL / FM_MOD) against the DSP: src/eng_digital.c's switch (alg)
  * in digital_render_legacy and digital_render_custom, written out here as "source>destination" routes and the
@@ -9877,121 +9865,7 @@ static int test_bpm_lock(void)
     return bad;
 }
 
-/* #15 / Discussion #80 MENU > LARGE: OFF by default (and in every older setting); KNOB 1 right ON / left OFF, OCT+
- * toggles, nothing else moves. ON: HOME and the value pages draw tall cards (a K1..K4 pill over each knob's column,
- * the value in L) and the strip under them; the list / graph pages and the layers keep the layout (their labels in
- * M); the footer stays; a knob turned redraws its own card only; saved with the settings, older settings OFF
- * (idempotent) */
 static uint16_t lg_px(int32_t x, int32_t y) { return swap16(host_screen[y * 240 + x]); }
-static int lg_value_rows(uint32_t c)                    /* rows of card c's value band holding the value's colour */
-{
-    int32_t x, y, n = 0;
-    for (y = Y_LABEL + 40; y < Y_LABEL + 76; y++)
-        for (x = CARD_X(c); x < CARD_X(c) + CARD_W; x++)
-            if (lg_px(x, y) == T_TEXT) { n++; break; }   /* (0.8.5: a value TEXT in every palette) */
-    return n;
-}
-static int test_large(void)
-{
-    int bad = 0, ok;
-    uint32_t c, pre_prefs;
-    static uint16_t off[240 * 240];
-    ui_power_on();
-    song.playing = 0;
-    pre_prefs = ui_prefs;
-    frame();
-    ok = !(ui_prefs & PREF_LARGE) && large_kind() == LK_OFF && card_h() == LB_CARD_H && graph_y() == LB_GRAPH_Y - 1u;   /* (HOME: the pods along the bottom, the scene above them; was AIR's) */
-    /* (HOME's
-                                                         * lens) */
-    ok &= str_eq(MI_NAME[MI_LARGE], "LARGE") && menu_flag(MI_LARGE) &&
-          str_eq(menu_flag(MI_LARGE)->name[0], "OFF") && str_eq(menu_flag(MI_LARGE)->name[1], "ON");
-    ui.force = 1; frame();
-    memcpy(off, host_screen, sizeof off);
-    hold(B_HOME); ui.menu_sel = MI_LARGE;
-    ok &= ui.menu == 1u;
-    turn(menu_knob(MI_LARGE), 1); ok &= (ui_prefs & PREF_LARGE) != 0u;          /* right: ON */
-    turn(menu_knob(MI_LARGE), -1); ok &= !(ui_prefs & PREF_LARGE);              /* left: OFF */
-    press(B_OCTUP); ok &= (ui_prefs & PREF_LARGE) && ui.menu;     /* OCT+: ON */
-    press(B_OCTDN); ok &= !(ui_prefs & PREF_LARGE) && ui.menu;    /* OCT-: OFF */
-    press(B_OCTUP);
-    ok &= (ui_prefs ^ pre_prefs) == PREF_LARGE;                /* (no other setting moved) */
-    press(B_HOME);
-    bad += check("#15 MENU > LARGE: OFF by default, SCREEN KNOB 1; right / OCT+ ON, left / OCT- OFF", ok && !ui.menu);
-
-    /* HOME (0.8.5: a lens): tall cards under its tabs (rows 42..146) and the strip (150..212); the footer as it was */
-    frame();
-    ok = ui.home && large_kind() == LK_TALL && card_y() == LZ_CARD_Y && card_h() == LG_CARD_H && graph_y() == LZ_LG_Y_GRAPH &&
-         strip_kind() == SK_SCOPE;
-    ok &= lg_px(30, LZ_CARD_Y + LZ_CARD_H + 2) == T_SURF;      /* a tall card (GARDEN: AIR, the off render, has no panel
-                                                         * to compare with: its checks went with COLORS) */
-    ok &= lg_px(30, LZ_LG_Y_GRAPH - 2) == T_BG;          /* the gap between the cards and the strip */
-    ok &= lg_px(30, LZ_LG_Y_GRAPH + 1) == T_SURF;
-    for (c = 0; c < 4u; c++)                                      /* each column's K pill, over its knob */
-        ok &= lg_px(CARD_X(c) + 8, LZ_CARD_Y + LG_MY + LG_MH / 2) == T_KEY;
-    /* (GARDEN: the footer is no longer compared with the off render: AIR's HOME draws its footer a row higher, hud_home) */
-    ok &= swap16(host_screen[(LT_Y + LT_H / 2) * 240 + LT_X(0) + 2]) == T_THEME;   /* (its tabs: ECO lit) */
-    bad += check("#15 LARGE ON: HOME's cards tall under its tabs (a K1..K4 pill over each column), the scope a strip", ok);
-
-    /* the value in L: GLOBAL's BPM 124 stands about twice as tall as in M */
-    go_title("GLOBAL"); frame();
-    ok = large_kind() == LK_TALL && strip_kind() == SK_TITLE && cur_page()->id[0] == G_BPM && lg_value_rows(0) >= AF_L_CAP_H - 3;
-    ui_prefs = 0; ui.force = 1; frame();
-    ok &= lg_value_rows(0) <= AF_M_CAP_H + 2;
-    ui_prefs = PREF_LARGE; ui.force = 1; frame();
-    bad += check("#15 LARGE: a card value in L (GLOBAL's BPM 120: about 21 rows of figures, M's 11)", ok);
-
-    /* a knob turned: its own card redrawn, the other three not */
-    go_title("ENV"); frame(); frames(600);
-    memcpy(off, host_screen, sizeof off);
-    turn(EN_K2, 3);
-    {
-        int32_t x, y, diff[4] = {0, 0, 0, 0};
-        for (y = Y_LABEL; y < Y_LABEL + LG_CARD_H; y++)
-            for (c = 0; c < 4u; c++)
-                for (x = CARD_X(c); x < CARD_X(c) + CARD_W; x++)
-                    diff[c] += off[y * 240 + x] != host_screen[y * 240 + x];
-        ok = large_kind() == LK_TALL && strip_kind() == SK_ADSR && diff[1] && !diff[0] && !diff[2] && !diff[3];
-    }
-    bad += check("#15 LARGE: ENV tall with its ADSR in the strip; KNOB 2 turned redraws card 2 only", ok);
-
-    /* per page type: lists and rolls keep the layout, the layers too; MIXER's tracks in the strip */
-    go_page(GR_BROWSE); frame();
-    ok = large_kind() == LK_LABEL && card_h() == LZ_CARD_H && graph_y() == LZ_GRAPH_Y && graph_h() == LZ_GRAPH_H;   /* (0.8.5:
-                                                         * SAVE's lens, the mock-up's layout) */
-    go_page(GR_ROLL); frame();
-    ok &= large_kind() == LK_LABEL;
-    go_page(GR_TRK); frame();
-    ok &= large_kind() == LK_TALL && strip_kind() == SK_TRK && lg_px(CARD_X(0) + 8, (int32_t)graph_y() + 56) == T_SURF;   /* (0.8.5: graph_y, a lens's) */
-    go_title("ENV"); frame();
-    btn_down(B_GLO); frames(800);
-    ok &= ui.layer && large_kind() == LK_LABEL && card_h() == LZ_CARD_H;   /* (0.8.5: the layer's lens) */
-    btn_up(B_GLO); frame(); frame();
-    ok &= !ui.layer && large_kind() == LK_TALL && lg_px(30, (int32_t)graph_y() - 2) == T_BG;
-    bad += check("#15 LARGE: PRESETS and the roll keep the layout (labels in M), the layers too; MIXER tall, its tracks in the strip", ok);
-
-    {   /* saved with the settings; settings from before it: OFF (and so again: idempotent) */
-        persist_t p, q;
-        settings_export(&p);
-        ui_prefs = 0;
-        ok = settings_import(&p, (int)sizeof p) == 1 && (ui_prefs & ~PREF_ACCEL_OFF) == PREF_LARGE;
-        q = p;
-        ok &= settings_import(&q, (int)sizeof q) == 1 && (ui_prefs & ~PREF_ACCEL_OFF) == PREF_LARGE && !memcmp(&p, &q, sizeof p);
-        memset(&p.favorites, 0, sizeof p.favorites);
-        p.magic = 0x50455233u;                                    /* (PER3: before the favorites record) */
-        ok &= settings_import(&p, (int)(sizeof p - sizeof p.favorites)) == 2 && !(ui_prefs & ~PREF_ACCEL_OFF);
-        q = p;
-        ok &= settings_import(&q, (int)sizeof q) == 1 && !(ui_prefs & ~PREF_ACCEL_OFF);
-        ui.force = 1; frame();
-        ok &= large_kind() == LK_OFF && (lz_on() ? card_y() == LB_CARD_Y && card_h() == LB_CARD_H :   /* (GARDEN: the off
-                                                         * layout's pods along the bottom, the garden round them) */
-                                         lg_px(30, Y_SEP_END + 1) == T_BG);   /* (0.8.5: a lens) */
-        bad += check("#15 LARGE saved with the settings; settings from before it: OFF (idempotent)", ok);
-    }
-    ui_prefs = 0;
-    ui_power_on(); frame();
-    return bad;
-}
-
 /* (GARDEN) the SCOPE row is retired: the EDIT pages always show the creature left of the SCOPE card and the chips */
 static uint32_t sc_count(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint16_t c, int eq)
 {
@@ -10121,8 +9995,8 @@ static int test_scope(void)
     /* (GARDEN) SCOPE retired: no MENU row, and every EDIT page with a creature shows the one layout (the creature left,
      * the SCOPE card, the chips) */
     for (i = 0; i < MI_COUNT; i++) ok &= !str_eq(MI_NAME[i], "SCOPE");
-    bad += check("SCOPE: no MENU row (retired); the MENU's SCREEN page is LARGE, ANIMATION, MOTION", ok && MPAGE[0].row[0] == MI_LARGE &&
-                 MPAGE[0].row[1] == MI_ANIM && MPAGE[0].row[2] == MI_MOTION);
+    bad += check("SCOPE: no MENU row (retired); the MENU's SCREEN page is ANIMATION, MOTION", ok && MPAGE[0].row[0] == MI_ANIM &&
+                 MPAGE[0].row[1] == MI_MOTION);
     for (e = 0; e < NENGINES; e++) {
         uint32_t on_tile, on_mid, chips, gy;
         if (!eng_ok(e) || e == ENGI_DRUM || e == ENGI_FM6 || e == ENGI_SERUM || eng_gone(e) || str_eq(ENGINES[e]->name, "DIGITAL"))
@@ -10170,15 +10044,15 @@ static int test_menu_prefs(void)
     turn(EN_SELECT, -40);
     ok &= ui.menu_sel == MPAGE[0].row[0];
     bad += check("0.9.18 MENU: SELECT reaches every page (every tab), each a screen of its own", ok);
-    /* ANIM (GARDEN: SCREEN, KNOB 2) */
-    ok = str_eq(MI_NAME[MI_ANIM], "ANIMATION") && !(ui_prefs & PREF_ANIM_OFF) && MPAGE[menu_page()].row[1] == MI_ANIM;
-    turn(EN_K2, 1); ok &= !(ui_prefs & PREF_ANIM_OFF) && ui.menu_sel == MI_ANIM;   /* right: ON (stays: the default) */
-    turn(EN_K2, -1); ok &= (ui_prefs & PREF_ANIM_OFF) != 0;       /* left: OFF */
-    turn(EN_K2, 1); ok &= !(ui_prefs & PREF_ANIM_OFF);            /* right: ON (the switch's knob right) */
+    /* ANIM (GARDEN: SCREEN, KNOB 1) */
+    ok = str_eq(MI_NAME[MI_ANIM], "ANIMATION") && !(ui_prefs & PREF_ANIM_OFF) && MPAGE[menu_page()].row[0] == MI_ANIM;
+    turn(EN_K1, 1); ok &= !(ui_prefs & PREF_ANIM_OFF) && ui.menu_sel == MI_ANIM;   /* right: ON (stays: the default) */
+    turn(EN_K1, -1); ok &= (ui_prefs & PREF_ANIM_OFF) != 0;       /* left: OFF */
+    turn(EN_K1, 1); ok &= !(ui_prefs & PREF_ANIM_OFF);            /* right: ON (the switch's knob right) */
     press(B_OCTDN); ok &= (ui_prefs & PREF_ANIM_OFF) && ui.menu;  /* OCT-: OFF */
     ok &= !(ui_prefs & ~(uint32_t)PREF_ANIM_OFF);                 /* (no other setting moved) */
     press(B_HOME);
-    bad += check("#46 MENU > ANIMATION: ON by default, KNOB 2 right / OCT+ ON, left / OCT- OFF", ok && !ui.menu);
+    bad += check("#46 MENU > ANIMATION: ON by default, KNOB 1 right / OCT+ ON, left / OCT- OFF", ok && !ui.menu);
     ui_prefs = 0;
     ui_power_on(); roll_settle();
     turn(EN_K4, 1);
@@ -11044,7 +10918,7 @@ static int test_lz_dialogs(void)
     return bad;
 }
 
-/* (0.9.5) toasts and hints: a toast is a small pill over the page, never a cleared panel (every skin, palette, LARGE); a
+/* (0.9.5) toasts and hints: a toast is a small pill over the page, never a cleared panel (every skin, palette); a
  * NOTICE leaves the page round its box; a page's hint only once dwelt on, never while SELECT walks past, at most HINT_MAX
  * times a power-on */
 static uint16_t toast_snap[240 * 240];
@@ -11063,9 +10937,8 @@ static int test_toasts(void)
     int32_t b[4];
     for (sk = 0; sk < 1u; sk++)
         for (pi = 0; pi < 3u; pi++)
-            for (lg = 0; lg < 2u; lg++) {
+            for (lg = 0; lg < 1u; lg++) {
                 ui_power_on();  settings.palette = PAL[pi]; palette_set(PAL[pi]);
-                if (lg) ui_prefs |= PREF_LARGE; else ui_prefs &= ~PREF_LARGE;
                 go_title("FILTER"); ui.force = 1; frames(1600);   /* (GARDEN: ENV's tulip grows and sways now: a still page) */
                 memcpy(toast_snap, host_screen, sizeof toast_snap);
                 ui_message("SAVED A LONG MESSAGE"); frame();
@@ -11080,8 +10953,7 @@ static int test_toasts(void)
                 frames(1600);
                 gone &= !ui.msg_t && memcmp(toast_snap + graph_y() * 240u, host_screen + graph_y() * 240u, graph_h() * 480u) == 0;
             }
-    ui_prefs &= ~PREF_LARGE;
-    bad += check("0.9.5 a toast is a pill over the page: the panel behind it as it was (every skin, JIANT GREY PAPER, LARGE)", ok);
+    bad += check("0.9.5 a toast is a pill over the page: the panel behind it as it was (every skin, JIANT GREY PAPER)", ok);
     bad += check("  gone with the message: the page whole again", gone);
     for (sk = 0; sk < 1u; sk++) {                   /* playing: the page moves on behind it */
         ui_power_on();  settings.palette = 0; palette_set(0);
@@ -11894,7 +11766,6 @@ int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     int bad = 0;
-    bad += test_large_face();
     bad += test_lz_home();
     bad += test_lz_edit();
     bad += test_lz_env();
@@ -11979,7 +11850,6 @@ int main(void)
     bad += test_usb_serial();
     bad += test_bpm_lock();
     bad += test_lock_pages();
-    bad += test_large();
     bad += test_scope();
     bad += test_home_a();
     bad += test_browse_no_pattern();

@@ -158,7 +158,7 @@ stands still, and only the page's own plants and creatures move.
   its bar; the knob you turn has an orange body.
 - **Footer**: the track and its sound at the left, the page's place in its chain at the right.
 
-**MENU › LARGE** keeps its big cards (an accessibility option). COLOR, SKIN, STYLE and ECO STYLE are retired: GARDEN
+COLOR, SKIN, STYLE, ECO STYLE and LARGE (big labels and values) are retired: GARDEN
 is the one look (settings saved with other values load as GARDEN; nothing else in them changes).
 
 **Page scenes.** **ENV**: one large tulip growing through the envelope of the voice playing. **LFO**: a row of six
@@ -2000,8 +2000,7 @@ every setting, its values and its meaning: nothing changes in the saved settings
 
 | Tab › page | KNOB | Setting | Values |
 | --- | --- | --- | --- |
-| SCREEN › SCREEN | 1 | LARGE | OFF, ON (big labels and values) — (GARDEN) COLOR, SKIN and STYLE are retired: one look |
-| | 2 | ANIMATION | ON, OFF (values snap, the garden still; the power-on signature appears whole) — was ANIM |
+| SCREEN › SCREEN | 1 | ANIMATION | ON, OFF (values snap, the garden still; the power-on signature appears whole) — was ANIM |
 | | 3 | SCREEN SLEEP | **NEVER** (default), 5 MIN, 15 MIN, 30 MIN, 60 MIN — the screen dark after that long without a touch (was SCREEN OFF) |
 | SCREEN › LEDS | 1 | LED GLOW | OFF, LOW, **HIGH** (default), INVERT — how the idle keys and buttons glow (was LEDS: OFF, DIM LO, DIM HI, INV); (0.7.3) the glow's LEDs take turns frame to frame, so it no longer hums through the speaker once the music stops |
 | | 2 | SCALE LEDS | OFF, ON — the keys of the scale glow, the root brighter |
