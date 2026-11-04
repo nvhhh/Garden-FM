@@ -120,6 +120,26 @@ int main(void)
         gen_with(1, 422, 50, 0); h3 = all_sig();
         bad += gcheck("deterministic: HOUSE 0421 twice the same piece, 0422 another", h1 == h2 && h1 != h3);
     }
+    /* ---- (fix) the lead's MELODIC weights: 50 as before, 0 and 100 as documented, nothing wraps above 50 */
+    {
+        uint8_t W[4];
+        int ok = 1;
+        mel_weights(50, W);
+        ok &= W[0] == 8 && W[1] == 64 && W[2] == 22 && W[3] == 6;
+        mel_weights(0, W);
+        ok &= W[0] == 13 && W[1] == 76 && W[2] == 12 && W[3] == 2;
+        mel_weights(100, W);
+        ok &= W[0] == 3 && W[1] == 52 && W[2] == 32 && W[3] == 10;
+        for (k = 0; k <= 100; k++) {
+            uint32_t sum;
+            mel_weights(k, W);
+            sum = (uint32_t)W[0] + W[1] + W[2] + W[3];
+            if (k > 50 && W[0] > W[1]) ok = 0;         /* a repeat never outweighs a step above 50 */
+            if (k > 50 && W[0] > 10) ok = 0;
+            if (sum > 255u || W[0] < 1u) ok = 0;
+        }
+        bad += gcheck("(fix) MELODIC weights: 50 = 8/64/22/6, 0 and 100 as documented, repeats never wrap above 50", ok);
+    }
     /* ---- every genre, three seeds, three energies: the guard rails */
     for (g = 0; g < NGENRE; g++) {
         for (s = 0; s < 3u; s++) {

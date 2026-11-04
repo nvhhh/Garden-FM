@@ -1084,6 +1084,17 @@ static const char *const GL_CELL[16] = {"x..x..x...x.....", "x.x.x...x.x.....", 
                                                          * the last four syncopated: off sixteenths, pushes) */
 enum { LB_M, LB_V, LB_R, LB_C, LB_REST };               /* a bar of the phrase: the motif, varied, the answer, the
                                                          * continuation, a rest */
+/* the lead's contour weights (MELODIC): 0 a repeat, 1 a step, 2 a third, 3 a fourth or fifth. MELODIC 50: 8, 64, 22, 6;
+ * 0 steps and repeats (13, 76, 12, 2), 100 leaps and thirds (3, 52, 32, 10). Signed math: the MELODIC above 50 used to
+ * wrap the unsigned 50 - mel, and a repeat then weighed ~160 */
+static void mel_weights(uint32_t mel, uint8_t W[4])
+{
+    const int32_t md = 50 - (int32_t)mel;              /* -50 .. 50 */
+    W[0] = (uint8_t)(8 + md / 10);
+    W[1] = (uint8_t)(64 + md / 4);
+    W[2] = (uint8_t)(12 + (int32_t)mel / 5);
+    W[3] = (uint8_t)(2 + (int32_t)mel / 12);
+}
 static void gen_lead(track_t *t, uint32_t len)
 {
     const ggenre_t *g = gs.g;
@@ -1234,10 +1245,10 @@ static void gen_lead(track_t *t, uint32_t len)
         for (j = 0; j < k; j++) {                       /* the contour: steps mostly, a leap turned back by a step, the
                                                          * shape (an arch, falling, rising, a wave) leaning each move */
             if (j) {
-                const uint32_t mel = gs.melodic;        /* (MELODIC 50: 8, 64, 22, 6; 100 more thirds and fourths) */
-                const uint8_t W[4] = {(uint8_t)(8u + (50u - mel) / 10u), (uint8_t)(64u + (50u - mel) / 4u),
-                                      (uint8_t)(12u + mel / 5u), (uint8_t)(2u + mel / 12u)};   /* (a repeat, a step, a third, a fourth or fifth) */
-                int32_t m = (int32_t)gpickw(W, 4), dir;
+                uint8_t W[4];
+                int32_t m, dir;
+                mel_weights(gs.melodic, W);             /* (a repeat, a step, a third, a fourth or fifth) */
+                m = (int32_t)gpickw(W, 4);
                 if (!m && !pv) m = 1;                   /* (never two repeats running) */
                 if (m == 3) m = gch(60) ? 3 : 4;
                 dir = ct == 0u ? (j <= k / 2u ? 1 : -1) : ct == 1u ? (gch(75) ? -1 : 1) : ct == 2u ? (gch(75) ? 1 : -1) : (j & 1u ? 1 : -1);
