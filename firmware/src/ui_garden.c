@@ -34,6 +34,7 @@ static struct {
 static uint8_t gd_plain;                               /* (host tests: a strip on BG, to measure its words) */
 static int32_t gd_edged;
 static struct { uint32_t t, b, fq; int32_t e; } gd_pl;      /* (Phase 4) the plants' clock: their time (1/1024 s), beats (Q16), the level */                               /* (gd_edges: the panel's edges kept for that strip) */
+static uint32_t gd_wv;                                 /* (FX's stream) its phase: the plants' clock sped up with the level (1x silent .. 3x full) */
 static int32_t bg_energy(void);                        /* (ui_being.c: the output's level, 0..256, slewed) */
 /* the motion clock: once a draw (ui_draw.c ui_draw). (The owner on the device) the tempo sets the pace, the level only
  * the amounts: both clocks run only while the music is on (playing, or sounding), 1024 ticks a second at 120 BPM and MOTION 100% (the mockups'
@@ -79,6 +80,7 @@ static void gd_tick(void)
     d = gd_pl.fq + gd_adv(run);
     gd_pl.fq = d & 255u;
     gd_pl.t += d >> 8;
+    gd_wv += (d >> 8) * (128u + (uint32_t)gd_pl.e) / 128u;   /* (the stream's phase: faster as the music is louder) */
     gd_pl.b += bt >> bs;
     if ((ui.home && !ui.menu && !ui.layer) || gd_page())   /* (the owner: the sails never still, on HOME and the scenes' pages,
                                                          * that redraw them; in silence a turn a minute. Behind a card they
@@ -496,11 +498,12 @@ static void gd_plants(uint32_t sc)
             gd_tulip(x, gd_gy(x) / 16 + 1, 16 + (int32_t)(ph * 40u >> 16), w + (gd_s(gd_pl.t * 10u + (uint32_t)i * 9000u) * 8 >> 8),
                      1 + (int32_t)(ph >> 14), (int32_t)(ph >> 8), (uint32_t)x, 230, i & 1 ? GD_BLUE : GD_BURNT);
         }
-    } else if (sc == GS_FX) {                           /* the stream: its ripples run with the sends and the level */
-        int32_t amp = 16 + (t->p[P_DIST] + t->p[P_CHOR] + t->p[P_DLY] + t->p[P_REV]) / 8 + e / 5, r, x;
+    } else if (sc == GS_FX) {                           /* the stream: its ripples swell with the level (5/8 of the swing at
+                                                         * full) and run faster as it grows; the sends add to the swing */
+        int32_t amp = 16 + (t->p[P_DIST] + t->p[P_CHOR] + t->p[P_DLY] + t->p[P_REV]) / 8 + e * 5 / 8, r, x;
         for (r = 0; r < 2; r++)
             for (x = 0; x < 240; x += 2)
-                cv_rect(x - gd.x0, 146 + r * 8 + (gd_s((uint32_t)x * 626u - gd_pl.t / 4u * (uint32_t)(30 + 30 * r)) * amp >> 12), 2, 2,
+                cv_rect(x - gd.x0, 146 + r * 8 + (gd_s((uint32_t)x * 626u - gd_wv / 4u * (uint32_t)(30 + 30 * r)) * amp >> 12), 2, 2,
                         r ? GD_BLUE : GD_PBLUE);
         gd_blob(50 * 16, (140 - gd_hop(102)) * 16, 128, 7, GD_BURNT, 1, 256, 282);   /* the apple, */
         gd_leaf(52 * 16, (133 - gd_hop(102)) * 16, 49152u - 6000u, 128, 48, GD_BLUE);
