@@ -838,9 +838,6 @@ static int auto_list(void)
         ev_name(t, P_ED_FLT, a); ev_name(t, P_LD_FLT, b);
         bad += check("  names: ENV FILTER / LFO FILTER", str_eq(a, "ENV FILTER") && str_eq(b, "LFO FILTER"));
     }
-    ui_prefs |= PREF_LARGE;
-    bad += check("  MENU > LARGE: the list layout with labels in M (as the other lists)", large_kind() == LK_LABEL);
-    ui_prefs &= ~PREF_LARGE;
     return bad;
 }
 /* SHIFT (JIANT, the former chord keys): OFS plays the sequence that many steps later (wrapping in LEN; recording

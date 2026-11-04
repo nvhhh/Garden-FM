@@ -4,7 +4,7 @@
 /* MENU's rows and their settings: what ui_menu.c draws and steps, and what the editor reads and sets (editor_menu.c
  * MENU_DESC / MENU_SET). One apply path for both: menu_put. A row is a setting (its MI_* is its place in the menu's
  * tables, not stored: the editor's ids are editor_menu.c ED_MENU's). (0.9.18) On nine pages of up to four knobs in five
- * tabs (MPAGE): SCREEN (GARDEN: LARGE ANIMATION MOTION; LIGHTS: SCREEN SLEEP LED GLOW SCALE LEDS), AUDIO
+ * tabs (MPAGE): SCREEN (GARDEN: ANIMATION MOTION; LIGHTS: SCREEN SLEEP LED GLOW SCALE LEDS), AUDIO
  * (SPEAKER EQ TRACKS LOAD BPM LOCK; CLICK CLICK LEVEL COUNT-IN), MIDI (MIDI OUT LEARN LEARN CLEAR), USB (USB AUDIO USB
  * LEVEL), SYSTEM (CONTROLS: HOLD TIME KNOB SPEEDUP FX LATCH CALIBRATION; SYSTEM: RESTORE LAST CPU CORES CPU CLOCK, what
  * a power-on does, and ABOUT). Until 0.9.17 one list in the
@@ -13,7 +13,7 @@
  * CLEAR is an action: OCT+ clears the map (ml_clear_all), its card shows how many CCs are learned. Neither is offered
  * to the editor (editor_menu.c ED_MENU); the map travels with the settings */
 #include "cpu_safe.c"        /* (0.9.12) MENU > SYSTEM > CPU CORES, CPU CLOCK; the last crash kept in the settings */
-enum { MI_LARGE, MI_ANIM, MI_LEDS, MI_SCROFF, MI_HOLD, MI_ACCEL, MI_LATCH, MI_BPMLOCK, MI_SCLLED,
+enum { MI_ANIM, MI_LEDS, MI_SCROFF, MI_HOLD, MI_ACCEL, MI_LATCH, MI_BPMLOCK, MI_SCLLED,
        MI_LOWCUT, MI_USB,
        MI_CLICK, MI_CLKLVL, MI_COUNTIN, MI_TRACKS, MI_LOAD, MI_MIDIOUT, MI_LEARN, MI_LCLEAR, MI_SERIAL, MI_RESTORE, MI_CPU,
        MI_CLOCK, MI_MOTION, MI_PANEL, MI_ABOUT, MI_COUNT };   /* (GARDEN: MOTION, ui.c ui_motion; PANEL and ABOUT take the next numbers)
@@ -24,7 +24,7 @@ enum { MI_LARGE, MI_ANIM, MI_LEDS, MI_SCROFF, MI_HOLD, MI_ACCEL, MI_LATCH, MI_BP
 #define MI_NONE 0xFFu
 static int menu_valued(uint32_t row) { return row < MI_VALUES && row != MI_LCLEAR; }   /* (a row with a value) */
 /* (0.9.18) the full names (the panel's rows, the editor's MENU_DESC; plain words, at most 12 characters) */
-static const char *const MI_NAME[MI_COUNT] = {"LARGE", "ANIMATION", "LED GLOW", "SCREEN SLEEP",
+static const char *const MI_NAME[MI_COUNT] = {"ANIMATION", "LED GLOW", "SCREEN SLEEP",
                                               "HOLD TIME", "KNOB SPEEDUP", "FX LATCH", "BPM LOCK", "SCALE LEDS",
                                               "SPEAKER EQ", "USB LEVEL", "CLICK", "CLICK LEVEL", "COUNT-IN", "TRACKS", "LOAD",
                                               "MIDI OUT", "LEARN", "LEARN CLEAR", "USB AUDIO",
@@ -39,7 +39,7 @@ static const char *const MTAB_NAME[MTAB_COUNT] = {"SCREEN", "AUDIO", "MIDI", "US
 #define MP_COUNT 8u
 typedef struct { char name[9]; uint8_t tab, row[4]; } menu_page_t;
 static const menu_page_t MPAGE[MP_COUNT] = {   /* (a page opens on its first setting: a value, never an action) */
-    {"SCREEN", MTAB_SCREEN, {MI_LARGE, MI_ANIM, MI_MOTION, MI_NONE}},   /* (GARDEN: COLOR, SKIN, STYLE, ECO STYLE and SCOPE gone) */
+    {"SCREEN", MTAB_SCREEN, {MI_ANIM, MI_MOTION, MI_NONE, MI_NONE}},   /* (GARDEN: COLOR, SKIN, STYLE, ECO STYLE and SCOPE gone) */
     {"LIGHTS", MTAB_SCREEN, {MI_SCROFF, MI_LEDS, MI_SCLLED, MI_NONE}},
     {"AUDIO", MTAB_AUDIO, {MI_LOWCUT, MI_TRACKS, MI_LOAD, MI_BPMLOCK}},
     {"CLICK", MTAB_AUDIO, {MI_CLICK, MI_CLKLVL, MI_COUNTIN, MI_NONE}},
@@ -80,7 +80,6 @@ static const char *const MOTION_N[4] = {"100%", "50%", "150%", "200%"};   /* (GA
  * second name (STYLE LINE, USB LEVEL FIXED); a step down the other (menu_step) */
 typedef struct { uint8_t row; uint16_t bit; const char *name[2]; } menu_flag_t;
 static const menu_flag_t MENU_FLAGS[] = {
-    {MI_LARGE, PREF_LARGE, {"OFF", "ON"}},            /* #15 / Discussion #80: ON, big knob labels and values (ui.c large_kind) */
     {MI_ANIM, PREF_ANIM_OFF, {"ON", "OFF"}},          /* #46: OFF, values snap (ui_draw.c roll_note, ui_graph.c pr_follow) */
     {MI_ACCEL, PREF_ACCEL_OFF, {"ON", "OFF"}},        /* #52: ui_input.c accel (JIANT: ON by default) */
     {MI_LATCH, PREF_LATCH, {"OFF", "ON"}},
@@ -206,7 +205,7 @@ static const char *menu_vname(uint32_t row, uint32_t v)
     return "";
 }
 /* set a row (v below menu_n(row)) and do what the menu does on a change: the EQ and USB LEVEL at once;
- * LARGE, ANIM, LEDS, HOLD, the flags are read where they are used, every frame;
+ * ANIM, LEDS, HOLD, the flags are read where they are used, every frame;
  * USB SERIAL when the menu has closed (usb_serial_apply). Saved by the caller (menu_close, the editor) */
 static void menu_put(uint32_t row, uint32_t v)
 {
