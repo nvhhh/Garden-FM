@@ -862,7 +862,7 @@ before SCALE LEDS the first 16, before SCREEN OFF the first 17):
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | 0 | COLOR | 0 | 0..9: GREY GREEN AMBER ICE VIOLET ROSE PAPER HI-CON NIGHT MONO (the order of `UI_PALETTES`) | GREY | 0 DISPLAY |
 | 1 | 1 | STYLE | 0 | 0 FLAT, 1 LINE | FLAT | 0 DISPLAY |
-| 2 | 2 | LARGE | 0 | 0 OFF, 1 ON | OFF | 0 DISPLAY |
+| 2 | 2 | (LARGE: retired, id never reused) | | | | |
 | 3 | 3 | ANIM | 0 | 0 ON, 1 OFF | ON | 0 DISPLAY |
 | 4 | 4 | LEDS | 0 | 0 OFF, 1 DIM LO, 2 DIM HI, 3 INV (darkest first, as the menu steps them) | DIM HI | 0 DISPLAY |
 | 5 | 5 | HOLD | 0 | 0 "0.3 s", 1 "0.4 s", 2 "0.5 s", 3 "0.6 s" | 0.4 s | 1 CONTROL |
@@ -898,7 +898,7 @@ so a settings backup carries it; there is no command to read or edit it.
 
 (JIANT 0.9.18) The MENU is regrouped as the device's pages (no id, index, value or default changes; nothing stored
 changes): count 25, tabs **0 SCREEN, 1 AUDIO, 2 MIDI, 3 USB, 4 SYSTEM**. Each item's tab: SCREEN COLOR (0), STYLE (1),
-LARGE (2), ANIMATION (3), LED GLOW (4), SCALE LEDS (16), SCREEN SLEEP (17), SKIN (21); (SCOPE (22) retired: its id is never reused); AUDIO BPM LOCK (8),
+ANIMATION (3), LED GLOW (4), SCALE LEDS (16), SCREEN SLEEP (17), SKIN (21); (SCOPE (22) retired: its id is never reused); AUDIO BPM LOCK (8),
 SPEAKER EQ (9), CLICK (12), CLICK LEVEL (13), COUNT-IN (14), TRACKS (18), LOAD (19); MIDI MIDI OUT (20); USB USB LEVEL
 (10), USB AUDIO (11); SYSTEM HOLD TIME (5), KNOB SPEEDUP (6), FX LATCH (7), RESTORE LAST (15), CPU CORES (23), CPU
 CLOCK (24). Names now whole words: ANIM → ANIMATION, LEDS → LED GLOW (values OFF, LOW, HIGH, INVERT: were OFF, DIM LO,
@@ -920,7 +920,7 @@ SCALE LEDS (id 16, 1.2, Discussion #127; the CONTROL tab shows HOLD, KNOB ACCEL,
 index 5..8 and 16): ON shows the selected track's scale on the key LEDs outside the layers (README: Key LEDs).
 Applied at once.
 
-SCREEN OFF (id 17, 1.1.5; the DISPLAY tab shows COLOR, STYLE, LARGE, ANIM, LEDS and SCREEN OFF, index 0..4 and 17):
+SCREEN OFF (id 17, 1.1.5; the DISPLAY tab shows COLOR, STYLE, ANIM, LEDS and SCREEN OFF, index 0..4 and 17):
 after that long without input on the panel (a button, a key, a knob; not MIDI, not the editor) the screen and its
 backlight go off while the sound, the sequencer, MIDI and USB go on; the next touch wakes it and does nothing else.
 NEVER keeps it on. A change counts from then (a MENU_SET to 5 MIN does not turn it off at once). Applied at once.

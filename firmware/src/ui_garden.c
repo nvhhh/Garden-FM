@@ -385,7 +385,7 @@ static const uint8_t GS_TOP[5] = {0, 60, 60, 60, 60};   /* the rows the plants a
 static uint32_t gd_page(void)
 {
     const page_t *pg = cur_page();
-    if (!gd_back() || ui.layer || ui.menu || large_kind() != LK_OFF || ui.home)
+    if (!gd_back() || ui.layer || ui.menu || ui.home)
         return GS_NONE;
     return pg->graph == GR_ADSR && pg->id[0] == P_ATK ? GS_ENV : pg->graph == GR_LFO ? GS_LFO : pg->graph == GR_FX ? GS_FX :
            pg->graph == GR_STEPS ? GS_SEQ : GS_NONE;

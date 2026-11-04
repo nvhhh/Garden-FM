@@ -158,7 +158,7 @@ static int preferences(void)
         host_wire[n0 - 23] == 0 &&                        /* (no bank since 1.0.3) */
         host_wire[n0 - 22] == 0x53 && host_wire[n0 - 21] == 1 && host_wire[n0 - 20] == 3 &&
         host_wire[n0 - 19] == 0x50 && host_wire[n0 - 18] == 1 && host_wire[n0 - 17] == 3 &&   /* FM6 v2: no bank, preset patches */
-        host_wire[n0 - 16] == 0x4E && host_wire[n0 - 15] == 1 && host_wire[n0 - 14] == 22 &&  /* MENU settings: 22 items (GARDEN: COLOR STYLE SKIN ECO STYLE SCOPE out, MOTION in) (0.6.72: MIDI OUT; 0.8.9 SKIN; 0.9.7 SCOPE; 0.9.12 CPU, CPU CLOCK) */
+        host_wire[n0 - 16] == 0x4E && host_wire[n0 - 15] == 1 && host_wire[n0 - 14] == 21 &&  /* MENU settings: 21 items (GARDEN: COLOR STYLE SKIN ECO STYLE SCOPE LARGE out, MOTION in) (0.6.72: MIDI OUT; 0.8.9 SKIN; 0.9.7 SCOPE; 0.9.12 CPU, CPU CLOCK) */
         host_wire[n0 - 13] == 0x52 && host_wire[n0 - 12] == 1 && host_wire[n0 - 11] == 4 &&   /* RATCH */
         host_wire[n0 - 10] == 0x4C && host_wire[n0 - 9] == 1 && host_wire[n0 - 8] == 1 &&   /* 1.1 parameter locks */
         host_wire[n0 - 7] == 0x56 && host_wire[n0 - 6] == 1 && host_wire[n0 - 5] == 32 &&   /* (0.6.11) FM6 voice bank */
@@ -801,16 +801,16 @@ static uint32_t menu_set(uint32_t id, int32_t v)            /* -> rc; host_wire[
 }
 static int menu_protocol(void)
 {
-    static const char *const WANT[18][2] = {   /* (GARDEN: COLOR and STYLE, ids 0 and 1, retired; not listed) */
-        {"LARGE", "OFF,ON"}, {"ANIMATION", "ON,OFF"}, {"LED GLOW", "OFF,LOW,HIGH,INVERT"},
+    static const char *const WANT[17][2] = {   /* (GARDEN: COLOR and STYLE, ids 0 and 1, retired; not listed; LARGE, id 2, too) */
+        {"ANIMATION", "ON,OFF"}, {"LED GLOW", "OFF,LOW,HIGH,INVERT"},
         {"HOLD TIME", "0.3 s,0.4 s,0.5 s,0.6 s"}, {"KNOB SPEEDUP", "ON,OFF"}, {"FX LATCH", "OFF,ON"}, {"BPM LOCK", "OFF,ON"},
         {"SPEAKER EQ", "FLAT,LOWCUT,BASS+"}, {"USB LEVEL", "MASTER,FIXED,-6 dB,-12 dB,-18 dB,-24 dB"}, {"USB AUDIO", "CONSOLE,STEREO,STEMS,IN+OUT,STEMS+IN"},
         {"CLICK", "OFF,REC,ON"}, {"CLICK LEVEL", "LOW,MID,HIGH"}, {"COUNT-IN", "OFF,1 BAR,2 BARS"},   /* (1.1: appended) */
         {"RESTORE LAST", "OFF,ON"}, {"SCALE LEDS", "OFF,ON"},                                        /* (1.2) */
         {"SCREEN SLEEP", "NEVER,5 MIN,15 MIN,30 MIN,60 MIN"}, {"TRACKS", "4,6,8"},   /* (0.6.18; 0.9.19: 8) */
         {"LOAD", "ECO,LITE,FULL"}};                                                                 /* (0.6.30) */
-    static const int32_t DEF[18] = {0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2};
-    static const uint8_t TAB[18] = {0, 0, 0, 4, 4, 4, 1, 1, 3, 3, 1, 1, 1, 4, 0, 0, 1, 1};      /* (0.9.18) SCREEN AUDIO MIDI
+    static const int32_t DEF[17] = {0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2};
+    static const uint8_t TAB[17] = {0, 0, 4, 4, 4, 1, 1, 3, 3, 1, 1, 1, 4, 0, 0, 1, 1};      /* (0.9.18) SCREEN AUDIO MIDI
                                                          * USB SYSTEM (until 0.9.17 DISPLAY CONTROL AUDIO MIDI SYSTEM) */
     static const char *const TABN[5] = {"SCREEN", "AUDIO", "MIDI", "USB", "SYSTEM"};
     int bad = 0, ok = 1;
@@ -821,11 +821,11 @@ static int menu_protocol(void)
     FILE *jf = json ? fopen(json, "w") : 0;
     reset();
     if (jf) fprintf(jf, "[");
-    for (i = 0; i < 18u; i++) {                         /* index i: id i + 2 */
+    for (i = 0; i < 17u; i++) {                         /* index i: id i + 3 */
         n = menu_desc(i, &it);
         joined[0] = 0;
         for (k = 0; k < it.nnames; k++) { if (k) strcat(joined, ","); strcat(joined, it.names[k]); }
-        ok &= n > 10u && it.index == i && it.id == i + 2u && it.kind == 0 && it.min == 0 &&
+        ok &= n > 10u && it.index == i && it.id == i + 3u && it.kind == 0 && it.min == 0 &&
               it.max + 1 == (int32_t)it.nnames && !strcmp(it.name, WANT[i][0]) && !strcmp(joined, WANT[i][1]) &&
               it.value == DEF[i] && it.tab == TAB[i] && !strcmp(it.tabname, TABN[TAB[i]]) && !it.rest;
         if (!ok) { printf("  MENU_DESC %u: %s [%s] value %d max %d tab %u %s\n", i, it.name, joined, it.value, it.max, it.tab, it.tabname); break; }
@@ -837,10 +837,10 @@ static int menu_protocol(void)
         }
     }
     if (jf) { fprintf(jf, "]\n"); fclose(jf); }
-    bad += check("MENU_DESC: 1.0.4's items in the menu's order without COLOR and STYLE (GARDEN), then 1.1's CLICK, CLICK LEVEL, COUNT-IN, 1.2's RESTORE LAST, SCALE LEDS, SCREEN OFF, TRACKS, LOAD: ids 2..19, names, defaults", ok);
+    bad += check("MENU_DESC: 1.0.4's items in the menu's order without COLOR and STYLE (GARDEN), then 1.1's CLICK, CLICK LEVEL, COUNT-IN, 1.2's RESTORE LAST, SCALE LEDS, SCREEN OFF, TRACKS, LOAD: ids 3..19, names, defaults (LARGE, id 2, retired)", ok);
     bad += check("MENU_DESC (1.0.5): after the names each item's tab, index and name (0.9.18: SCREEN AUDIO MIDI USB SYSTEM)", ok);
     {   /* an older editor reads the names and stops: the tab is past them, nothing it reads moved */
-        uint32_t m = menu_desc(2, &it), p = 14, q;   /* (LED GLOW) */
+        uint32_t m = menu_desc(1, &it), p = 14, q;   /* (LED GLOW) */
         for (q = 0; q < 1u + it.nnames; q++) { while (host_wire[p]) p++; p++; }   /* name, the names */
         ok = m > 10u && host_wire[p] == 0 && !strcmp((const char *)host_wire + p + 1, "SCREEN") &&
              p + 1u + 7u == m + 6u - 1u;
@@ -852,13 +852,13 @@ static int menu_protocol(void)
         ok &= strcmp(it.name, "CALIBRATION") != 0 && strcmp(it.name, "ABOUT") != 0;   /* (a strcmp difference is not 1) */
         ok &= strcmp(it.name, "COLOR") != 0 && strcmp(it.name, "STYLE") != 0 && strcmp(it.name, "SKIN") != 0 && strcmp(it.name, "ECO STYLE") != 0 &&
               it.id != 0 && it.id != 1 && it.id != 21 && it.id != 25;  /* (GARDEN: retired, their ids never reused) */
-        if (i == 18u) ok &= !strcmp(it.name, "MIDI OUT") && it.id == 20;   /* (0.6.72) */
-        if (i == 21u) ok &= !strcmp(it.name, "MOTION") && it.id == 26 && it.tab == 0;     /* (GARDEN; ECO STYLE, id 25, retired; SCOPE, id 22, too) */
+        if (i == 17u) ok &= !strcmp(it.name, "MIDI OUT") && it.id == 20;   /* (0.6.72) */
+        if (i == 20u) ok &= !strcmp(it.name, "MOTION") && it.id == 26 && it.tab == 0;     /* (GARDEN; ECO STYLE, id 25, retired; SCOPE, id 22, too) */
     }
-    menu_desc(19, &it);                                   /* (0.9.12) CPU, CPU CLOCK, rows of SYSTEM (tab 4 since MIDI) */
+    menu_desc(18, &it);                                   /* (0.9.12) CPU, CPU CLOCK, rows of SYSTEM (tab 4 since MIDI) */
     ok &= !strcmp(it.name, "CPU CORES") && it.id == 23 && it.tab == 4 && it.max == 1 && !strcmp(it.names[0], "1 CORE") &&
           !strcmp(it.names[1], "2 CORES");
-    menu_desc(20, &it);
+    menu_desc(19, &it);
     ok &= !strcmp(it.name, "CPU CLOCK") && it.id == 24 && it.tab == 4 && it.max == 1 && !strcmp(it.names[0], "360 MHZ") &&
           !strcmp(it.names[1], "320 MHZ");
     n = menu_desc(23, &it);
@@ -876,8 +876,7 @@ static int menu_protocol(void)
     /* MENU_SET: each setting, applied as the menu applies it; RAM only here (no flash: rc 3) */
     reset();
     ui.force = 0;
-    ok = menu_set(2, 1) == 3 && host_wire[6] == 2 && ed_rv(host_wire + 7) == 1 && (ui_prefs & PREF_LARGE) && ui.force;
-    ok &= menu_set(3, 1) == 3 && (ui_prefs & PREF_ANIM_OFF);
+    ok = menu_set(3, 1) == 3 && host_wire[6] == 3 && ed_rv(host_wire + 7) == 1 && (ui_prefs & PREF_ANIM_OFF) && ui.force;
     ok &= menu_set(4, 0) == 3 && settings_leds == LEDS_OFF && menu_set(4, 1) == 3 && settings_leds == LEDS_DIM_LO;
     ok &= menu_set(5, 3) == 3 && settings_hold == 3u;
     ok &= menu_set(6, 1) == 3 && (ui_prefs & PREF_ACCEL_OFF);
@@ -894,20 +893,20 @@ static int menu_protocol(void)
           menu_set(17, 2) == 3 && scr_get() == 2u && ui_scr == 1u;
     ok &= menu_set(18, 1) == 3 && (ui_rec_prefs & 0x80u);   /* TRACKS 6 (0.6.18; rp_apply: the next frame) */
     ok &= menu_set(19, 0) == 3 && ui_load == 2u && sys_load == LOAD_ECO;   /* LOAD ECO (0.6.30) */
-    for (i = 0; i < 18u; i++) {                         /* MENU_DESC reads them back (index i: id i + 2) */
-        static const int32_t SET[18] = {1, 1, 1, 3, 1, 1, 1, 2, 1, 0, 2, 0, 2, 1, 1, 2, 1, 0};
+    for (i = 0; i < 17u; i++) {                         /* MENU_DESC reads them back (index i: the i-th row of ED_MENU, from id 3) */
+        static const int32_t SET[17] = {1, 1, 3, 1, 1, 1, 2, 1, 0, 2, 0, 2, 1, 1, 2, 1, 0};
         menu_desc(i, &it);
         ok &= it.value == SET[i];
     }
     bad += check("MENU_SET: every setting applied as the menu does (EQ, USB LEVEL, CLICK, COUNT-IN at once, RESTORE LAST, SCALE LEDS, SCREEN OFF), read back", ok);
-    ok = menu_set(3, 0) == 3 && !(ui_prefs & PREF_ANIM_OFF) && (ui_prefs & PREF_LARGE) && menu_set(10, 0) == 3 &&
+    ok = menu_set(3, 0) == 3 && !(ui_prefs & PREF_ANIM_OFF) && (ui_prefs & PREF_LATCH) && menu_set(10, 0) == 3 &&
          !fx_usb_fixed;
     bad += check("MENU_SET: a flag back to its default leaves the other flags", ok);
 
     /* clamping: the reply carries the device's value */
     ok = menu_set(4, 99) == 3 && ed_rv(host_wire + 7) == 3 && settings_leds == LEDS_INV;
     ok &= menu_set(5, 8191) == 3 && ed_rv(host_wire + 7) == 3 && settings_hold == 3u;
-    ok &= menu_set(2, 7) == 3 && ed_rv(host_wire + 7) == 1 && (ui_prefs & PREF_LARGE);
+    ok &= menu_set(3, 7) == 3 && ed_rv(host_wire + 7) == 1 && (ui_prefs & PREF_ANIM_OFF);
     ok &= menu_set(14, 9) == 3 && ed_rv(host_wire + 7) == 2 && cin_bars == 2u;
     ok &= menu_set(12, -1) == 3 && ed_rv(host_wire + 7) == 0 && click_mode == CLICK_OFF;
     bad += check("MENU_SET: out-of-range values clamped, the reply says the value the device took", ok);
