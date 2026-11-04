@@ -1,6 +1,6 @@
-# Felucca build from main, 5e185e6
+# Felucca build from main, 2ebd564
 
-- Source: nvhhh/garden-fm, branch `main`, commit `5e185e6` ("Update README.md"; the GARDEN UI work through 70c23cb is included).
+- Source: nvhhh/garden-fm, branch `main`, commit `2ebd564` ("GEN: MELODIC above 50 no longer wraps the lead's repeat weight"; includes the MELODIC fix).
 - Built with `./build.sh` (default options, no `--release`), JieLi toolchain jieli-linux-toolchains-20260730.1 and AC79 SDK AC79NN_SDK_V1.2.1_2023-12-13.
 - Package identity: FM-1_900. Files: `felucca.fwsc` (installable package), `felucca.bin` (app image), `SHA256SUMS`.
 
