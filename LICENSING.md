@@ -86,7 +86,9 @@ Every distribution of a package carries the licence texts with it: the release f
 ## No vendor material
 
 No M-VAVE material is part of Felucca. The firmware links no vendor code and contains no vendor
-data, and the packages hold only Felucca and the three SDK files above. The installer's
+data, and the packages hold only Felucca and the three SDK files above. The one exception is the
+official V15 file `web/flasher/FM-1-V15.fwsc`, which belongs to M-VAVE. It is included only for the
+web flasher's official V15 install. It is not Felucca and is not GPL-3.0-only. The installer's
 "Return to official V15" holds only the official file's size and SHA-256: you select the
 official firmware file you downloaded yourself, and it is checked and installed in your browser,
 never uploaded or redistributed.
