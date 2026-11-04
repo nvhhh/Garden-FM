@@ -34,7 +34,7 @@ a { color: var(--acc); }
 <body>
 <main>
   <h1>Felucca flasher for FM-1</h1>
-  <p class="mut">Installs the Felucca firmware on an M-VAVE FM-1 from this browser, over its USB-MIDI port. Build: <span id="build">main 2ebd564</span>.</p>
+  <p class="mut">Installs firmware on an M-VAVE FM-1 from this browser, over its USB-MIDI port. The bundled build is the official V15 (FM-1_015).</p>
 
   <div class="card">
     <h2>Before you start</h2>
@@ -51,8 +51,8 @@ a { color: var(--acc); }
     <p id="pkg" class="mut">Loading the bundled build…</p>
     <p class="mut">SHA-256: <code id="sha">-</code></p>
     <p>
-      <button id="bundled" class="quiet" type="button">Use the bundled build</button>
-      <label class="mut" style="margin-left: 12px;">or choose a .fwsc file
+      <button id="bundled" class="quiet" type="button">Use the bundled official V15</button>
+      <label class="mut" style="margin-left: 12px;">or choose a .fwsc file (the official V15 or a Felucca build)
         <input id="file" type="file" accept=".fwsc" style="display:block; margin-top:6px; color: var(--fg);">
       </label>
     </p>
@@ -61,7 +61,7 @@ a { color: var(--acc); }
   <div class="card warn">
     <h2>Install</h2>
     <p class="mut">Do not unplug the FM-1 until this page says the install is done. An install takes a few minutes.</p>
-    <button id="go" type="button" disabled>Install Felucca</button>
+    <button id="go" type="button" disabled>Install official V15</button>
     <progress id="bar" max="100" value="0"></progress>
     <p id="status" role="status"></p>
   </div>
@@ -72,19 +72,19 @@ a { color: var(--acc); }
   </details>
 
   <p class="mut">
-    Want the official firmware back? Use the <a href="../webapp/installer/">official installer</a>.
+    Other builds: the <a href="../webapp/installer/">installer</a> offers Felucca versions.
     Felucca is GPL-3.0-only (see <a href="LICENSING.md">LICENSING.md</a>). Source:
     <a href="https://github.com/nvhhh/garden-fm">github.com/nvhhh/garden-fm</a>.
   </p>
 </main>
 <script type="module">
 import { Updater } from "./fm1ota.js";
-import { productOf, logicalImage, sha256hex } from "./fm1pkg.js";
+import { productOf, logicalImage, sha256hex, validateStockPackage, STOCK_V15_SHA256 } from "./fm1pkg.js";
 
-// the bundled package and its checksum (sha256sum of felucca-main-2ebd564.fwsc, see BUILD.md)
+// the bundled package: the official V15 (FM-1.fwsc from M-VAVE, see BUILD.md and LICENSING.md)
 const BUNDLED = {
-  file: "felucca-main-2ebd564.fwsc",
-  sha256: "be15119677e53aedc8a4da200dfba47f31ba68053df33dfe3bbc8c3244456893",
+  file: "FM-1-V15.fwsc",
+  sha256: STOCK_V15_SHA256,
 };
 const $ = (id) => document.getElementById(id);
 const log = (s) => { $("log").textContent += s + "\n"; };
@@ -103,25 +103,35 @@ function setBusy(on) {
   $("file").disabled = on;
 }
 
-// a Felucca package: an FM-1 identity and the Felucca update loader inside (tools/fm1_install.py's check)
+// the official V15 (checked by its SHA-256 and layout, as the installer's "Return to official V15") or a Felucca
+// package (an FM-1 identity and the Felucca update loader inside, tools/fm1_install.py's check)
 async function load(bytes, name) {
   pkg = null;
   $("go").disabled = true;
   try {
-    const product = productOf(bytes);
-    if (!/^FM-1_\d{3}$/.test(product)) throw new Error(`Not an FM-1 package (identity ${JSON.stringify(product)}).`);
-    if (!new TextDecoder("latin1").decode(bytes).includes("FELUCCA-LOADER-1"))
-      throw new Error("Not a Felucca package: it has no Felucca update loader. This page installs Felucca only.");
     const sha256 = await sha256hex(bytes);
-    pkg = { image: logicalImage(bytes), product, name, sha256, size: bytes.length };
-    $("pkg").textContent = `${name} · ${product} · ${bytes.length.toLocaleString()} bytes`;
+    let next;
+    if (sha256 === STOCK_V15_SHA256) {
+      const stock = await validateStockPackage(bytes);
+      next = { image: stock.image, product: stock.product, label: "Install official V15" };
+    } else {
+      const product = productOf(bytes);
+      if (!/^FM-1_\d{3}$/.test(product)) throw new Error(`Not an FM-1 package (identity ${JSON.stringify(product)}).`);
+      if (!new TextDecoder("latin1").decode(bytes).includes("FELUCCA-LOADER-1"))
+        throw new Error("Not the official V15 and not a Felucca package: it has no Felucca update loader.");
+      next = { image: logicalImage(bytes), product, label: `Install Felucca (${product})` };
+    }
+    pkg = { ...next, name, sha256, size: bytes.length };
+    $("pkg").textContent = `${name} · ${pkg.product} · ${bytes.length.toLocaleString()} bytes`;
     $("sha").textContent = sha256;
+    $("go").textContent = pkg.label;
     $("go").disabled = busy;
     setStatus("Ready. Connect the FM-1 and press Install.");
-    log(`package: ${product} ${name} (${bytes.length} bytes, sha256 ${sha256})`);
+    log(`package: ${pkg.product} ${name} (${bytes.length} bytes, sha256 ${sha256})`);
   } catch (e) {
     $("pkg").textContent = "No package loaded.";
     $("sha").textContent = "-";
+    $("go").textContent = "Install official V15";
     setStatus(e.message, true);
     log(`error: ${e.message}`);
   }
