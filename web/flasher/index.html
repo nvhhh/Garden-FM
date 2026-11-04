@@ -34,7 +34,7 @@ a { color: var(--acc); }
 <body>
 <main>
   <h1>Felucca flasher for FM-1</h1>
-  <p class="mut">Installs the Felucca firmware on an M-VAVE FM-1 from this browser, over its USB-MIDI port. Build: <span id="build">main 5e185e6</span>.</p>
+  <p class="mut">Installs the Felucca firmware on an M-VAVE FM-1 from this browser, over its USB-MIDI port. Build: <span id="build">main 2ebd564</span>.</p>
 
   <div class="card">
     <h2>Before you start</h2>
@@ -81,10 +81,10 @@ a { color: var(--acc); }
 import { Updater } from "./fm1ota.js";
 import { productOf, logicalImage, sha256hex } from "./fm1pkg.js";
 
-// the bundled package and its checksum (sha256sum of felucca-main-5e185e6.fwsc, see BUILD.md)
+// the bundled package and its checksum (sha256sum of felucca-main-2ebd564.fwsc, see BUILD.md)
 const BUNDLED = {
-  file: "felucca-main-5e185e6.fwsc",
-  sha256: "93bb5a66e3537538e1cd2663cc4aae31b24821a8a67a91c7620da82f4eafd178",
+  file: "felucca-main-2ebd564.fwsc",
+  sha256: "be15119677e53aedc8a4da200dfba47f31ba68053df33dfe3bbc8c3244456893",
 };
 const $ = (id) => document.getElementById(id);
 const log = (s) => { $("log").textContent += s + "\n"; };
